@@ -1,5 +1,6 @@
 import { Application } from 'pixi.js';
-import { CANVAS, TUNING } from './config';
+import { BRIDGE_URL, CANVAS, TUNING } from './config';
+import { BridgeClient } from './bridge/BridgeClient';
 import { loadManifest } from './manifest';
 import { PointerTracker } from './pointer';
 import { AvatarRig } from './rig/AvatarRig';
@@ -66,6 +67,13 @@ async function boot(): Promise<void> {
   });
 
   new DevPanel(state, manifest);
+
+  // Terima sinyal dari bridge (hook Claude Code) -> map ke event/state.
+  const bridge = new BridgeClient(BRIDGE_URL, (s) => {
+    if (s.kind === 'event') state.event(s.name);
+    else state.apply(s.name);
+  });
+  bridge.connect();
 
   // Bantu debug dari console.
   Object.assign(window as unknown as Record<string, unknown>, { hitomi: { app, rig, state } });

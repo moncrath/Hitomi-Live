@@ -11,7 +11,9 @@ Konteks pemakaian: user ngoding di **Antigravity** dengan **Claude sebagai ekste
 yang jalan, punya hooks). Overlay dibuat **IDE-agnostic** biar nggak tergantung API Antigravity.
 
 ## Status
-🟢 **Fase 1a selesai.** Renderer pixi.js v8 (Vite+TS) di `app/` (http://127.0.0.1:5173). Loader manifest → scene ber-grup + animasi: blink · eye-track · head-tilt 2.5D · hair-sway · napas · sayap flap · aksesoris baju pendulum · plume kepala trailing. Aset: sayap `1a/1b`, baju `7b`, kepala `15a`(gerak)/`15b`(statis). **Api WebM ditunda** (nggak konsisten render, dicabut). **Sekarang → Fase 1b:** WebSocket bridge + verifikasi hooks Claude Code di Antigravity (risiko #1) → wrap Tauri. Repo masih 0 commit.
+🟢 **Fase 1a selesai & di-commit.** Renderer pixi.js v8 (Vite+TS) di `app/` (http://127.0.0.1:5173). Loader manifest → scene ber-grup + animasi: blink · eye-track · head-tilt 2.5D · hair-sway · napas · sayap flap · aksesoris baju pendulum · plume kepala trailing. Aset: sayap `1a/1b`, baju `7b`, kepala `15a`(gerak)/`15b`(statis). **Api WebM ditunda** (nggak konsisten render, dicabut).
+
+🟡 **Fase 1b berjalan — bridge discaffold & di-wire, belum dites end-to-end.** Sudah ada: WS bridge lokal (`bridge/`, port 17872, `POST /event`→broadcast `WS /ws`), hook poster fire-and-forget (`hooks/notify.mjs`), WS client auto-reconnect di overlay (`app/src/bridge/BridgeClient.ts`) yang sudah di-wire di `main.ts`. **Belum:** `npm install` + tes end-to-end browser · daftar hook di `settings.json` · **verifikasi hooks kepanggil di Antigravity (Risiko #1)** · wrap Tauri.
 
 ## Tech Stack (rencana)
 - **Overlay shell:** Tauri (window transparan, always-on-top, click-through). *(Electron = plan B, lebih berat.)*
@@ -56,6 +58,7 @@ Claude Code (di Antigravity)
 - **Live2D rig** — keunggulan utamanya (lip-sync halus) nggak kepakai tanpa TTS; ongkos aset/lisensi/berat nggak sepadan.
 
 ## Decision Log
+- **2026-07-29** — **Bridge event = relay-nama murni (aman by design).** Bridge cuma broadcast `{kind,name}` yang lolos validasi ketat (regex `^[A-Za-z0-9_]+$`, cap nama 48 char, body 1KB) — **tak pernah eksekusi apa pun**. Hook `notify.mjs` fire-and-forget: timeout 400ms, **selalu exit 0**, jadi Claude Code nggak akan kena blok/gagal walau bridge mati. Client overlay auto-reconnect (backoff 0.4–2.4s) biar tahan putus. Port default `17872`, localhost-only.
 - **2026-07-29** — **Api WebM ditunda.** Additive di kanvas transparan bikin kotak hitam → diperbaiki dgn luma-key VP9 alpha, tapi video tetap nggak konsisten nongol di browser user (kemungkinan autoplay/decoder). Diputuskan cabut dulu biar momentum jalan; bisa dihidupkan lagi nanti (aset + pelajaran tersimpan). Renderer tetap siap: tinggal re-add sprite video ke `head`.
 - **2026-07-29** — **Aksesoris hidup (Fase 1a+):** (a) `1_back-accessories` dipecah jadi sayap kiri/kanan (`1a`/`1b`), animasi flap idle (sine) + spring-lag asimetris, pivot di titik-tempel bahu. (b) Aksesoris baju jadi layer sendiri (`7a_*`) dengan pendulum halus gain kecil. (c) **Api aksesoris kepala pakai WebM background hitam + `blendMode:'add'`** (bukan sprite sheet / alpha-webm). Alasan: api emissive → additive bikin hitam lenyap & api glowing, authoring paling ringan; jalan di canvas transparan & WebView2 Tauri. `15` dipisah: statik tetap `15`, api = `fire.webm` layer atas.
 - **2026-07-28** — Ekspresi via **swap mata utuh (variant)**, bukan alis. Konsekuensi menguntungkan: base eye punya pupil terpisah (tracking aktif); variant eye = pupil baked (beku). Jadi eye-tracking otomatis hanya jalan di state idle/mikir/ngoding, padam mulus saat ekspresi/blink — tanpa pupil nyasar.
@@ -72,10 +75,11 @@ Claude Code (di Antigravity)
 
 ## Next Steps
 1. ✅ Aset seni + manifest + state/event map.
-2. ✅ Scaffold renderer pixi.js ditulis (`app/`) — loader manifest + animasi + dev panel.
-3. **`npm install` di `app/`** (butuh izin: pixi.js + vite) → `npm run dev` → verifikasi visual & tuning animasi.
-4. Verifikasi hooks jalan di Antigravity (risiko #1) — masuk Fase 1b.
-5. Fase 1b: bungkus Tauri (transparan/always-on-top/click-through) + bridge WebSocket → tembak event dari hook.
+2. ✅ Scaffold renderer pixi.js (`app/`) + `npm install` + verifikasi visual (Fase 1a, di-commit).
+3. ✅ Scaffold bridge WS + hook poster + client overlay (di-wire di `main.ts`).
+4. **`npm install` di `bridge/`** → `npm run dev` → tes end-to-end: `curl POST /event` → avatar bereaksi di browser.
+5. Daftar `hooks/notify.mjs` di `settings.json` → **verifikasi hooks kepanggil di Antigravity (Risiko #1)**.
+6. Wrap Tauri (transparan/always-on-top/click-through) — butuh Rust toolchain, konfirmasi dulu.
 
 ## References
 - AIRI — https://github.com/moeru-ai/airi (inspirasi avatar; paket `stage-ui-live2d`, `stage-ui-three`)

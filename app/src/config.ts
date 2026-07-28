@@ -9,6 +9,9 @@ export const layerUrl = (key: string): string => `${LAYERS_BASE}${key}.png`;
 // Kanvas seragam semua layer (registrasi presisi, tanpa offset manual).
 export const CANVAS = { width: 1080, height: 1440 } as const;
 
+// Bridge lokal (hook Claude Code -> event). Overlay konek ke sini via WebSocket.
+export const BRIDGE_URL = 'ws://127.0.0.1:17872/ws';
+
 // Tuning animasi terpusat (smoothing = fraksi jarak TERSISA setelah 1 detik;
 // makin kecil makin gesit, makin besar makin ngelag).
 export const TUNING = {

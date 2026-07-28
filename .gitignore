@@ -23,3 +23,6 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+
+# Claude Code local settings (path mesin, jangan di-commit)
+.claude/settings.local.json
