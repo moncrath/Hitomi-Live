@@ -1,0 +1,130 @@
+{
+  "name": "hitomi",
+  "canvas": { "width": 1080, "height": 1440 },
+  "note": "Manifest resmi aset asli. z besar = layer atas. Base eye punya pupil terpisah (tracking); variant eye = mata utuh (beku).",
+
+  "z_order_idle": [
+    "1a_back-accessories_left", "1b_back-accessories_right",
+    "2_back-hair", "3_lefthair_back", "4_righthair_back",
+    "5_lefthand", "6_righthand", "7_body", "7b_body_acessories", "8_headbase",
+    "9b_mouth_closed",
+    "10_eyes_background", "10_eyes_pupil_left", "10_eyes_pupil_right", "10_eyes_frame",
+    "11_side_small_hair", "12_bangs", "13_left_eyebrow", "14_right_eyebrow",
+    "15a_head_accessories", "15b_head_accessories"
+  ],
+
+  "groups": {
+    "head_group": {
+      "note": "tilt bersama saat head-tracking, poros di leher",
+      "pivot": [534, 790],
+      "members": ["8_headbase", "eyes*", "9*_mouth*", "11_side_small_hair",
+                  "12_bangs", "13_left_eyebrow", "14_right_eyebrow",
+                  "15a_head_accessories", "15b_head_accessories"]
+    },
+    "hair_dynamic": {
+      "note": "sway dengan lag, mengikuti kepala",
+      "members": {
+        "2_back-hair":     { "pivot": [534, 255] },
+        "3_lefthair_back": { "pivot": [380, 235] },
+        "4_righthair_back":{ "pivot": [690, 235] },
+        "12_bangs":        { "pivot": [536, 300] }
+      }
+    },
+    "back_dynamic": {
+      "note": "sayap/panel belakang bawah, flap idle (sine) + react ke head, pivot pangkal atas dekat punggung",
+      "members": {
+        "1a_back-accessories_left":  { "pivot": [524, 866] },
+        "1b_back-accessories_right": { "pivot": [528, 866] }
+      }
+    },
+    "cloth_dynamic": {
+      "note": "aksesoris baju, pendulum halus (gain kecil), pivot titik gantung",
+      "members": {
+        "7b_body_acessories": { "pivot": [535, 1058] }
+      }
+    },
+    "head_accessory_dynamic": {
+      "note": "plume kepala (15a) sway trailing DI DALAM head_group; pivot pangkal",
+      "members": {
+        "15a_head_accessories": { "pivot": [522, 400] }
+      }
+    },
+    "static": {
+      "note": "5,6 tangan (di belakang badan); 7 badan (napas); 15b aksesoris kepala statis (ikut tilt head)",
+      "members": ["5_lefthand", "6_righthand", "7_body", "15b_head_accessories"]
+    }
+  },
+
+  "eyes": {
+    "base": ["10_eyes_background", "10_eyes_pupil_left", "10_eyes_pupil_right", "10_eyes_frame"],
+    "pupils": {
+      "left":  { "file": "10_eyes_pupil_left",  "center": [425, 624] },
+      "right": { "file": "10_eyes_pupil_right", "center": [641, 624] },
+      "max_offset": [28, 18]
+    },
+    "variants": {
+      "closed":       "10a_eyes_closed",
+      "closed_happy": "10b_eyes_closed_happy",
+      "dizzy":        "10c_eyes_dizzy",
+      "shocked":      "10d_eyes_shocked",
+      "angry":        "10e_eyes_angry",
+      "love":         "10f_eyes_love-or-yandere",
+      "sad":          "10g_eyes_sad"
+    }
+  },
+
+  "mouths": {
+    "open":    "9a_mouth_open",
+    "closed":  "9b_mouth_closed",
+    "grin":    "9c_mouth_grin",
+    "happy2":  "9d_mouth_happy2",
+    "happy1":  "9e_mouth_happy1",
+    "sad":     "9f_mouth_sad",
+    "shocked": "9g_mouth_shocked",
+    "pout":    "9h_mouth_pout",
+    "angry":   "9i_mouth_angry"
+  },
+
+  "brows": { "left": "13_left_eyebrow", "right": "14_right_eyebrow", "static": true },
+
+  "tracking": {
+    "note": "Hanya aktif saat eyes=base (idle/mikir/ngoding). Variant eye = beku otomatis.",
+    "enabled_when": "eyes == base",
+    "target": "cursor",
+    "max_offset": [28, 18],
+    "ease": 0.15
+  },
+
+  "states": {
+    "idle":    { "eyes": "base",         "mouth": "closed",  "tracking": true },
+    "talking": { "eyes": "base",         "mouth": "open",    "tracking": true, "note": "saat bubble muncul" },
+    "mikir":   { "eyes": "base",         "mouth": "closed",  "tracking": true },
+    "ngoding": { "eyes": "base",         "mouth": "closed",  "tracking": true },
+    "sukses":  { "eyes": "closed_happy", "mouth": "grin",    "tracking": false },
+    "error":   { "eyes": "shocked",      "mouth": "shocked", "tracking": false },
+    "marah":   { "eyes": "angry",        "mouth": "angry",   "tracking": false },
+    "minder":  { "eyes": "sad",          "mouth": "pout",    "tracking": false },
+    "dizzy":   { "eyes": "dizzy",        "mouth": "sad",     "tracking": false },
+    "love":    { "eyes": "love",         "mouth": "happy2",  "tracking": false }
+  },
+
+  "blink": { "overlay": "10a_eyes_closed", "only_when": "eyes == base", "interval_ms": [2500, 6000], "duration_ms": 110 },
+
+  "events": {
+    "note": "Peta hook Claude Code -> state. flash = tampil sekejap lalu balik ke state dasar.",
+    "SessionStart":      { "flash": "love", "then": "idle" },
+    "UserPromptSubmit":  { "state": "mikir" },
+    "PreToolUse":        { "state": "ngoding" },
+    "PostToolUse":       { "state": "ngoding", "on_error": "error" },
+    "Notification":      { "state": "mikir" },
+    "Stop":              { "flash": "sukses", "then": "idle" },
+    "error_repeat":      { "state": "marah", "note": "gagal beruntun >= 3x" }
+  },
+
+  "bubble": {
+    "shape": "rounded_rect", "corner_radius": 24, "padding": [20, 24],
+    "min_w": 160, "max_w": 420, "tail": [32, 28],
+    "fill": "#FFF6FA", "border": "#FF6FA5", "border_w": 3,
+    "text": "#3A2B33", "font": "Nunito/Quicksand 16-18"
+  }
+}
