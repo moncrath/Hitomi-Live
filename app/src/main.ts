@@ -14,8 +14,18 @@ import { Breathing } from './anim/breathing';
 import { WingFlap } from './anim/wingFlap';
 import { ClothSway } from './anim/clothSway';
 import { HeadAccessorySway } from './anim/headAccessorySway';
+import { isTauri, startTauriCursor } from './tauriCursor';
+import { mountHitomiMenu } from './ui/HitomiMenu';
+import { mountHitomiBubble } from './ui/HitomiBubble';
+import { listenTauriSignal } from './bridge/tauriSignal';
 
 async function boot(): Promise<void> {
+  // Di Tauri, body harus benar-benar transparan (CSS dev pakai checker gelap untuk browser).
+  if (isTauri()) {
+    document.documentElement.style.background = 'transparent';
+    document.body.style.background = 'transparent';
+  }
+
   const app = new Application();
   await app.init({
     resizeTo: window,
@@ -26,12 +36,23 @@ async function boot(): Promise<void> {
   });
   document.getElementById('app')!.appendChild(app.canvas);
 
+  // Overlay frameless: kanvas pointer-events:none supaya mousedown jatuh ke #app,
+  // lalu HitomiMenu memakai window.startDragging() untuk menyeret. Menu = kontainer
+  // sibling (tombolnya tetap bisa diklik, tidak ikut terseret).
+  if (isTauri()) {
+    app.canvas.style.pointerEvents = 'none';
+    mountHitomiMenu();
+    void mountHitomiBubble();
+  }
+
   const manifest = await loadManifest();
   const rig = new AvatarRig();
   await rig.build(manifest);
   app.stage.addChild(rig.root);
 
-  const ptr = new PointerTracker();
+  // Di Tauri: kursor dibaca global (poller), jadi matikan listener DOM biar tak bentrok.
+  const ptr = new PointerTracker(window, !isTauri());
+  if (isTauri()) void startTauriCursor(ptr);
   const state = new StateController(rig, manifest);
   state.apply('idle');
 
@@ -66,14 +87,20 @@ async function boot(): Promise<void> {
     blink.update(rig, state.baseMode, dt);
   });
 
-  new DevPanel(state, manifest);
+  // DevPanel hanya untuk dev di browser; di overlay Tauri kontrol lewat tray.
+  if (!isTauri()) new DevPanel(state, manifest);
 
-  // Terima sinyal dari bridge (hook Claude Code) -> map ke event/state.
-  const bridge = new BridgeClient(BRIDGE_URL, (s) => {
+  // Terima sinyal hook Claude Code -> map ke event/state.
+  // Di Tauri: bridge in-process (Rust) via event Tauri. Di browser: WS bridge Node (dev).
+  const onSignal = (s: { kind: string; name: string }): void => {
     if (s.kind === 'event') state.event(s.name);
     else state.apply(s.name);
-  });
-  bridge.connect();
+  };
+  if (isTauri()) {
+    void listenTauriSignal(onSignal);
+  } else {
+    new BridgeClient(BRIDGE_URL, onSignal).connect();
+  }
 
   // Bantu debug dari console.
   Object.assign(window as unknown as Record<string, unknown>, { hitomi: { app, rig, state } });

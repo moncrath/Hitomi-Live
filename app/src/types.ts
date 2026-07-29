@@ -3,7 +3,8 @@ export type Vec2 = [number, number];
 
 export interface StateDef {
   eyes: string; // "base" | key variant (closed_happy, shocked, angry, sad, dizzy, love, ...)
-  mouth: string; // key ke mouths
+  mouth?: string; // key ke mouths (tunggal)
+  mouths?: string[]; // atau kumpulan key -> dipilih acak tiap state di-apply (variasi)
   tracking: boolean;
   note?: string;
 }

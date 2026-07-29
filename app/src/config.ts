@@ -18,7 +18,8 @@ export const TUNING = {
   head: { smoothing: 0.0009, maxRot: 0.12, parallaxX: 16, parallaxY: 9 },
   hair: { smoothing: 0.45, gain: 1.7 },
   bangs: { smoothing: 0.16, gain: 0.75 },
-  eyes: { smoothing: 0.0035 },
+  // Look-at mata: reach = fraksi ukuran avatar; kursor sejauh ~reach dari mata = deflect penuh.
+  eyes: { smoothing: 0.0035, reach: 0.5 },
   breath: { speed: 1.6, amount: 0.012 },
   // Sayap belakang bawah: flap idle (sine, mirror kiri-kanan) + condong ikut kepala.
   wings: { idleSpeed: 1.0, idleAmp: 0.05, reactGain: 0.5, smoothing: 0.25, dropY: 140 },
@@ -27,5 +28,6 @@ export const TUNING = {
   // Plume kepala (15a): sway trailing di dalam head (rotasi relatif ke kepala).
   headAcc: { gain: 2.4, smoothing: 0.35 },
   dropY: 26, // geser kepala + rambut belakang turun (nutup potongan leher)
-  fitScale: 0.95,
+  // <1 memberi margin di dalam window supaya rambut/parallax tak kepotong di tepi.
+  fitScale: 0.82,
 } as const;

@@ -1,6 +1,9 @@
 import type { Manifest } from '../types';
 import type { AvatarRig } from '../rig/AvatarRig';
 
+/** Durasi state "flash" (sukses/love) sebelum balik ke state dasar. */
+const FLASH_MS = 1600;
+
 /**
  * Menerapkan state (swap mata utuh/variant + mulut + flag tracking) dan event
  * (flash sekejap lalu balik). Menyimpan mode aktif untuk dibaca animasi.
@@ -30,7 +33,12 @@ export class StateController {
     this.current = name;
     const { rig } = this;
 
-    const mouthKey = this.m.mouths[st.mouth];
+    // Mulut: acak dari `mouths` bila ada (variasi), selain itu `mouth` tunggal.
+    const mouthName =
+      st.mouths && st.mouths.length
+        ? st.mouths[Math.floor(Math.random() * st.mouths.length)]
+        : st.mouth;
+    const mouthKey = mouthName ? this.m.mouths[mouthName] : undefined;
     if (mouthKey) rig.mouth.texture = rig.textures.get(mouthKey)!;
 
     if (st.eyes === 'base') {
@@ -65,7 +73,7 @@ export class StateController {
     if (ev.flash) {
       this.apply(ev.flash);
       const back = ev.then ?? 'idle';
-      this.flashTimer = setTimeout(() => this.apply(back), 900);
+      this.flashTimer = setTimeout(() => this.apply(back), FLASH_MS);
     } else if (ev.state) {
       this.apply(ev.state);
     }

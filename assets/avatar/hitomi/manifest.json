@@ -82,7 +82,9 @@
     "sad":     "9f_mouth_sad",
     "shocked": "9g_mouth_shocked",
     "pout":    "9h_mouth_pout",
-    "angry":   "9i_mouth_angry"
+    "angry":   "9i_mouth_angry",
+    "frawl":   "9j_mouth_frawl",
+    "bleeh":   "9k_mouth_bleeh"
   },
 
   "brows": { "left": "13_left_eyebrow", "right": "14_right_eyebrow", "static": true },
@@ -98,8 +100,8 @@
   "states": {
     "idle":    { "eyes": "base",         "mouth": "closed",  "tracking": true },
     "talking": { "eyes": "base",         "mouth": "open",    "tracking": true, "note": "saat bubble muncul" },
-    "mikir":   { "eyes": "base",         "mouth": "closed",  "tracking": true },
-    "ngoding": { "eyes": "base",         "mouth": "closed",  "tracking": true },
+    "mikir":   { "eyes": "base",         "mouths": ["pout", "bleeh"],   "tracking": true, "note": "prompt masuk; mulut random gantian" },
+    "ngoding": { "eyes": "base",         "mouths": ["happy1", "frawl"], "tracking": true, "note": "tool jalan; mulut random gantian" },
     "sukses":  { "eyes": "closed_happy", "mouth": "grin",    "tracking": false },
     "error":   { "eyes": "shocked",      "mouth": "shocked", "tracking": false },
     "marah":   { "eyes": "angry",        "mouth": "angry",   "tracking": false },
