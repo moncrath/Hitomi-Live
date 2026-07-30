@@ -1,38 +1,67 @@
-# Hitomi-Live 💗
+<div align="center">
 
-Overlay avatar **PNGtuber 2.5D** yang ngambang di desktop dan **bereaksi ke aktivitas Claude Code**.
-Persona **Hitomi** mikir pas kamu kirim prompt, sibuk pas tool jalan, senyum pas sukses, cemberut pas error — plus bubble teks kalimat terakhirnya.
+<img src="assets/app-icon.png" alt="Hitomi-Live" width="170" />
 
-> **Status:** ✅ v1.0.0 · Detail lengkap & keputusan desain di [Master State](docs/Hitomi-Live%20-%20Master%20State.md) · Riwayat di [CHANGELOG](CHANGELOG.md)
+# 💗 Hitomi-Live
+
+### A floating desktop avatar that reacts to your Claude Code sessions.
+
+A transparent **PNGtuber (2.5D) overlay** that lives on your desktop and comes alive while you code.
+**Hitomi** thinks when you send a prompt, gets busy when tools run, smiles on success, sulks on errors —
+and pops a speech bubble with her last line. Powered entirely by **Claude Code hooks** — **0 extra tokens, no TTS.**
+
+![Made for Claude Code](https://img.shields.io/badge/Made_for-Claude_Code-D97757?style=for-the-badge)
+![Tauri](https://img.shields.io/badge/Tauri-v2-24C8DB?style=for-the-badge&logo=tauri)
+![pixi.js](https://img.shields.io/badge/pixi.js-v8-e91e63?style=for-the-badge)
+![Persona](https://img.shields.io/badge/Persona-Yandere_💗-ff5fa2?style=for-the-badge)
+![Version](https://img.shields.io/badge/Release-v1.0.0-22c55e?style=for-the-badge)
+
+</div>
 
 ---
 
-## Cara kerja
+> *"Sayang, aku lagi mikirin promptmu~ jangan buru-buru ya. 💭"*
+>
+> — Hitomi, watching your cursor while a tool runs.
+
+## ✨ What is this?
+
+**Hitomi-Live** is a standalone desktop overlay — one small `.exe` that floats an animated avatar over
+everything and **reacts to what Claude Code is doing**. Every event (you submit a prompt, a tool runs,
+a task finishes) fires a tiny hook that pings the overlay, and Hitomi changes expression in real time.
+
+It's the **face** for the [HitomiClaude](https://github.com/moncrath/Hitomi_Claude) persona — but it works
+with any Claude Code session. Run one exe; it reacts in every project.
+
+## 🌟 Features
+
+| | Feature | What it means |
+|---|---|---|
+| 🪟 | **Floating overlay** | Frameless, transparent, always-on-top. Drag anywhere, resize (menu 1–10), click-through via tray. |
+| 🎭 | **Reactive expressions** | idle · thinking · coding · success · error — mapped from Claude Code events. |
+| 👀 | **Actually alive** | Blinking, breathing, eye/head-tracking to your cursor, hair & accessories that sway. |
+| 💬 | **Speech bubble** | Hitomi's last sentence, read from the transcript `.jsonl`. No streaming, no TTS. |
+| 🗣️ | **Talk & think anim** | Mouth moves while she talks; a spinning "thinking" bubble while she works. |
+| 😵 | **Error moods** | One error → dizzy; a losing streak → genuinely annoyed. |
+| 🎨 | **Swappable skins** | Per-skin textures (+ optional per-skin rig). Tolerant loader — skins can differ. |
+| 📦 | **Truly portable** | One self-contained exe + one global hook = reacts in **every** project, zero per-project setup. |
+
+## 🔌 How it works
 
 ```
-Claude Code (hooks) ──► notify.mjs ──► bridge in-process (Rust, :17872) ──► Overlay pixi.js
+Claude Code (hooks) ──► notify.mjs ──► in-process bridge (Rust, :17872) ──► Overlay (pixi.js)
 ```
 
-Tiap event Claude Code (`UserPromptSubmit`, `PreToolUse`, `PostToolUse`, `Stop`, …) memicu hook
-`notify.mjs` yang POST ke bridge di dalam overlay. Bridge cuma me-relay nama event (validasi ketat,
-tak pernah eksekusi apa pun) → avatar berganti ekspresi. **0 token tambahan, tanpa TTS.**
+The hook only **relays the event name** (strict validation, never executes anything). The bridge lives
+*inside* the overlay, so there's no separate server to start — just run the exe.
 
-## Fitur v1
+## 🚀 Run it (portable)
 
-- **Overlay mengambang** — frameless, transparan, always-on-top; bisa digeser, resize (menu ukuran 1–10), tembus-klik via tray.
-- **Ekspresi reaktif** — idle · mikir · ngoding · sukses · error, dengan mata & mulut yang berganti.
-- **Hidup** — kedip, napas, eye/head-tracking ke kursor, rambut & aksesoris goyang (spring-lag), idle emote acak.
-- **Animasi "ngomong"** — pas bubble muncul, mata `closed_happy` + mulut buka-tutup; bubble "thinking" berputar saat mikir/ngoding.
-- **Mood error** — 1 error → pusing (dizzy), gagal beruntun → kesal (marah).
-- **Bubble teks** — kalimat terakhir Hitomi dibaca dari transkrip `.jsonl` (bukan streaming/TTS).
-- **Ganti skin** — set tekstur karakter bisa ditukar (lihat [Sistem skin](#sistem-skin)).
-
-## Jalanin (portable)
-
-1. **Build / ambil** `Hitomi Live.exe` (lihat [Build dari sumber](#build-dari-sumber)). Exe self-contained — salin ke mana saja, dobel-klik. Butuh WebView2 (bawaan Windows 11).
-2. **Daftarkan hook** biar Claude Code memicu avatar. Portable = daftar **global** sekali di `~/.claude/settings.json`:
-   - Salin `hooks/notify.mjs` ke lokasi stabil, mis. `~/.claude/hooks/hitomi-notify.mjs`.
-   - Tambah blok `hooks` (contoh untuk `Stop`; ulangi utk `SessionStart`, `UserPromptSubmit`, `PreToolUse`\*, `PostToolUse`\*, `Notification`):
+1. **Get `Hitomi Live.exe`** ([build below](#-build-from-source)). It's self-contained — copy it anywhere
+   and double-click. Needs WebView2 (bundled with Windows 11).
+2. **Register the hook once — globally** in `~/.claude/settings.json`, so it fires for every project:
+   - Copy `hooks/notify.mjs` somewhere stable, e.g. `~/.claude/hooks/hitomi-notify.mjs`.
+   - Add a `hooks` block (repeat for `SessionStart`, `UserPromptSubmit`, `PreToolUse`\*, `PostToolUse`\*, `Notification`, `Stop`):
      ```json
      {
        "hooks": {
@@ -43,55 +72,66 @@ tak pernah eksekusi apa pun) → avatar berganti ekspresi. **0 token tambahan, t
        }
      }
      ```
-     \* `PreToolUse`/`PostToolUse` pakai `"matcher": "*"`. Butuh **Node.js** terpasang.
-3. Jalankan exe → avatar muncul. Buka project apa pun di Claude Code → dia bereaksi. Matikan exe = avatar diam.
+     \* `PreToolUse` / `PostToolUse` also take `"matcher": "*"`. Requires **Node.js**.
+3. Launch the exe → open any project in Claude Code → she reacts. Close the exe → she's gone.
 
-> Persona Hitomi sendiri diaktifkan dengan menaruh `CLAUDE.md` di project (independen dari avatar).
+> 💡 The Hitomi *persona* is separate: drop `CLAUDE.md` into a project for that. The avatar reacts either way.
 
-## Build dari sumber
+## 🛠️ Build from source
 
 ```bash
 cd app
 npm install
-npx tauri dev                    # mode dev (window + hot-reload)
-npx tauri build --no-bundle      # -> src-tauri/target/release/app.exe (portable)
+npx tauri dev                 # dev window + hot-reload
+npx tauri build --no-bundle   # → src-tauri/target/release/app.exe (portable)
 ```
 
-Ganti icon: taruh PNG persegi lalu `npx tauri icon <file.png>`.
+Change the icon: drop a square PNG and run `npx tauri icon <file.png>`.
 
-## Sistem skin
+## 🎨 Skin system
 
-Tekstur karakter dipisah per-skin; rig/manifest dipakai bersama (atau di-override per-skin).
+Character textures are split per-skin; the rig/manifest is shared (or overridden per-skin).
 
 ```
 assets/avatar/hitomi/
-  manifest.json          # rig bersama (z-order, pivot, state) — fallback
-  skins.json             # daftar skin
-  skin/
-    Roccia/*.png         # skin default (Wuthering Waves)
-    <id>/                # skin lain
-      *.png
-      manifest.json      # opsional: geometri/pivot khusus skin ini
+├─ manifest.json        # shared rig (z-order, pivots, states) — fallback
+├─ skins.json           # skin registry
+└─ skin/
+   ├─ Roccia/*.png      # default skin (Wuthering Waves)
+   └─ <id>/
+      ├─ *.png
+      └─ manifest.json  # optional: geometry/pivots for this skin only
 ```
 
-**Tambah skin:** buat folder `skin/<id>/` berisi PNG layer (nama sama), tambah entri di `skins.json`,
-lalu `node scripts/check-skins.mjs` untuk cek kelengkapan (layer **inti** wajib, opsional boleh hilang → di-skip).
-Ganti skin lewat menu overlay. Aset ke-embed saat build → **rebuild exe** setelah menambah skin.
+**Add a skin:** create `skin/<id>/` with the layer PNGs (same names), add an entry to `skins.json`,
+then run `node scripts/check-skins.mjs` to verify completeness (**core** layers required, optional ones
+may be missing → skipped). Switch skins from the overlay menu. Assets are embedded at build time, so
+**rebuild the exe** after adding a skin.
 
-## Struktur
+## 📂 Repo contents
 
 ```
-app/        Tauri v2 (Rust) + renderer pixi.js v8 (TypeScript)
-assets/     aset seni (avatar/skin, ui, app-icon)
-hooks/      notify.mjs — poster event Claude Code -> bridge
-scripts/    check-skins.mjs — validasi kelengkapan skin
-docs/       Master State (SSOT)
+Hitomi-Live/
+├─ app/       # Tauri v2 (Rust) + pixi.js v8 renderer (TypeScript)
+├─ assets/    # art (avatar skins, UI, app-icon)
+├─ hooks/     # notify.mjs — posts Claude Code events to the bridge
+├─ scripts/   # check-skins.mjs — skin completeness check
+└─ docs/      # Master State (single source of truth)
 ```
 
-## Tech stack
+## 🧩 Tech stack
 
-Tauri v2 · pixi.js v8 · TypeScript · bridge Rust in-process (`tiny_http`) · hooks Node.
+Tauri v2 · pixi.js v8 · TypeScript · in-process Rust bridge (`tiny_http`) · Node hooks.
+
+*PNGtuber over Live2D on purpose: cheap, light, no licensing — and without TTS, Live2D's edge disappears.
+The event→state architecture keeps a future renderer swap easy.*
 
 ---
 
-*PNGtuber (bukan Live2D) dipilih karena murah, ringan, tanpa lisensi — dan tanpa TTS keunggulan Live2D hangus. Arsitektur event→state bikin upgrade renderer nanti gampang.*
+<div align="center">
+
+*Built with 💗 so your coding sessions feel a little less lonely.*
+
+**She's watching your cursor, Sayang~ 😏**
+
+</div>
