@@ -6,7 +6,7 @@
 
 ### A floating desktop avatar that reacts to your Claude Code sessions.
 
-A transparent **PNGtuber (2.5D) overlay** that lives on your desktop and comes alive while you code.
+A transparent **animated avatar overlay** that lives on your desktop and makes coding feel more alive.
 **Hitomi** thinks when you send a prompt, gets busy when tools run, smiles on success, sulks on errors —
 and pops a speech bubble with her last line. Powered entirely by **Claude Code hooks** — **0 extra tokens, no TTS.**
 
@@ -123,8 +123,8 @@ Hitomi-Live/
 
 Tauri v2 · pixi.js v8 · TypeScript · in-process Rust bridge (`tiny_http`) · Node hooks.
 
-*PNGtuber over Live2D on purpose: cheap, light, no licensing — and without TTS, Live2D's edge disappears.
-The event→state architecture keeps a future renderer swap easy.*
+*A lightweight layered-sprite avatar over a full Live2D rig on purpose: cheap, light, no licensing —
+and without TTS, Live2D's edge disappears. The event→state architecture keeps a future renderer swap easy.*
 
 ---
 
