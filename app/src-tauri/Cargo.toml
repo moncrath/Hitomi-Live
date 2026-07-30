@@ -1,8 +1,8 @@
 [package]
 name = "app"
-version = "0.1.0"
-description = "A Tauri App"
-authors = ["you"]
+version = "1.0.0"
+description = "Hitomi Live — overlay PNGtuber avatar yang bereaksi ke event Claude Code"
+authors = ["Mirai27x"]
 license = ""
 repository = ""
 edition = "2021"

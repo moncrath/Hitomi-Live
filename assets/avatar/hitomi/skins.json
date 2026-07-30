@@ -1,0 +1,15 @@
+{
+  "note": "Daftar skin (set tekstur) untuk avatar. Semua skin memakai rig/manifest yang sama (nama layer identik). 'id' = nama folder di skin/. Tambah skin baru: buat folder skin/<id>/ berisi semua PNG layer, lalu tambahkan entri di sini.",
+  "skins": [
+    {
+      "id": "Roccia",
+      "label": "Roccia",
+      "note": "from wuthering waves character"
+    },
+    {
+      "id": "Hitomi",
+      "label": "Hitomi",
+      "note": "skin orisinal (WIP — isi folder skin/Hitomi/ dgn semua PNG dulu sebelum dipakai)"
+    }
+  ]
+}

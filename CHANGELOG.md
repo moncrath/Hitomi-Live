@@ -3,6 +3,8 @@
 Semua perubahan penting proyek ini dicatat di sini.
 
 ## [Unreleased]
+
+## [1.0.0] - 2026-07-30
 ### Added
 - Inisialisasi proyek: folder, `CLAUDE.md` (persona Hitomi), docs planning.
 - Master State dengan arsitektur, scope (Fase 1+2, no TTS), dan Decision Log awal.
@@ -31,8 +33,12 @@ Semua perubahan penting proyek ini dicatat di sini.
   - `notify.mjs` pada hook `Stop`: baca `transcript_path` `.jsonl` → ambil **kalimat terakhir Hitomi** (assistant terakhir yg ada teks; strip markdown ringan; cap 180 char) → POST `/bubble`.
   - Rust bridge: endpoint `POST /bubble` (body ≤4KB, teks ≤600 char) → emit event Tauri `hitomi://bubble`.
   - `HitomiBubble` overlay: panel teks (ungu/pink, font Vividly) muncul di sisi sesuai `hitomi.bubbleSide`, auto-hilang (durasi ikut panjang teks).
+- **Polish ekspresi:** animasi "ngomong" saat bubble tampil (`TalkAnim`: mata dipaksa `closed_happy` sepanjang durasi + mulut gantian `9aa`/`9ab`); **idle emote** sesekali (love/senang/minder) via `IdleEmote`; **mood error** (`coding_error`→dizzy, `error_streak`≥3→marah, dideteksi di `notify.mjs`); **bubble "thinking"** (`ThinkingBubble`, pixi) muncul saat mikir/ngoding dgn ikon berputar, mirror ikut sisi.
+- **Ganti skin karakter** (menu → *Skin*): tekstur dipisah per-skin di `skin/<id>/`, dipilih data-driven dari `skins.json`; ganti skin → simpan `hitomi.skin` + reload. **Fleksibel:** tiap skin boleh punya `skin/<id>/manifest.json` sendiri (geometri/pivot beda per karakter) — fallback ke manifest bersama bila tak ada. **Rig toleran:** cuma layer inti wajib; layer opsional yang hilang di-skip (bukan crash), jadi skin boleh beda jumlah file. Skrip `scripts/check-skins.mjs` cek kelengkapan (inti ✖ / opsional ⚠).
 
 ### Changed
+- **Portable build + auto-hook global:** `tauri build --no-bundle` → **satu exe self-contained** (`app/src-tauri/target/release/app.exe`, frontend+aset ke-embed). Icon dari `app-icon.png` (di-pad 1024²). Hook dijadikan **global** di `~/.claude/settings.json` (script stabil `~/.claude/hooks/hitomi-notify.mjs`) → semua project auto-bereaksi tanpa setup, cukup jalankan 1 exe. Hook per-project repo ini dikosongkan (cegah dobel-fire). Cakupan: **universal** (bereaksi di semua sesi Claude Code; kontrol via nyala/mati exe).
+- **Aset direstruktur untuk multi-skin:** `assets/avatar/hitomi/layers/` → `assets/avatar/hitomi/skin/Roccia/` (skin sekarang = **Roccia**, Wuthering Waves; sementara sampai skin orisinal Hitomi siap). `config.layerUrl` kini pakai skin aktif; tambah `skins.json`.
 - **Ekspresi lebih hidup:** `mikir` & `ngoding` kini beda dari `idle` (mata tetap base → tracking jalan). Mulut **random gantian**: mikir = `pout`/`bleeh`, ngoding = `happy1`/`frawl` (aset `9j`,`9k` didaftarkan). Durasi flash `sukses`/`love` 0.9s → **1.6s**. `StateDef.mouths[]` = pool mulut acak.
 - **Bridge diserap ke dalam overlay (Rust `tiny_http`)** — hook POST `127.0.0.1:17872/event` → emit event Tauri `hitomi://signal` → avatar. Tujuan: launch overlay = semua jalan, 1 exe mandiri tanpa Node. Frontend Tauri pakai `listen()`; browser-dev tetap WS (`bridge/` Node opsional). Bind retry 10× (tahan race port saat hot-reload dev).
 - **Eye-tracking jadi look-at akurat** — pupil menatap TITIK kursor (per mata, via `eyes.toGlobal` + kursor relatif window `cursor_norm` uv), bukan sekadar condong relatif layar.

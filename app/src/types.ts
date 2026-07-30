@@ -22,12 +22,14 @@ export interface Manifest {
   canvas: { width: number; height: number };
   z_order_idle: string[];
   groups: {
+    // head_group WAJIB (poros kepala inti); grup dinamis lain opsional per-skin
+    // (karakter tanpa sayap/cloth/plume cukup tak mencantumkannya).
     head_group: { pivot: Vec2; members: string[]; note?: string };
-    hair_dynamic: { note?: string; members: Record<string, { pivot: Vec2 }> };
-    back_dynamic: { note?: string; members: Record<string, { pivot: Vec2 }> };
-    cloth_dynamic: { note?: string; members: Record<string, { pivot: Vec2 }> };
-    head_accessory_dynamic: { note?: string; members: Record<string, { pivot: Vec2 }> };
-    static: { note?: string; members: string[] };
+    hair_dynamic?: { note?: string; members: Record<string, { pivot: Vec2 }> };
+    back_dynamic?: { note?: string; members: Record<string, { pivot: Vec2 }> };
+    cloth_dynamic?: { note?: string; members: Record<string, { pivot: Vec2 }> };
+    head_accessory_dynamic?: { note?: string; members: Record<string, { pivot: Vec2 }> };
+    static?: { note?: string; members: string[] };
   };
   eyes: {
     base: string[];

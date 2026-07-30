@@ -1,6 +1,19 @@
 import { Assets, Container, Sprite, Texture } from 'pixi.js';
-import { CANVAS, TUNING, layerUrl } from '../config';
+import { CANVAS, TUNING, layerUrl, getSkin } from '../config';
 import type { Manifest, Vec2 } from '../types';
+
+/** Layer inti yang WAJIB ada di tiap skin (rig tak berarti tanpa ini). Sisanya
+ *  (sayap, tangan, cloth, side-hair, bangs, alis, aksesoris kepala, variant mata,
+ *  mulut ekstra) opsional → hilang = di-skip, bukan crash. */
+const REQUIRED_LAYERS = [
+  '7_body',
+  '8_headbase',
+  '9b_mouth_closed',
+  '10_eyes_background',
+  '10_eyes_pupil_left',
+  '10_eyes_pupil_right',
+  '10_eyes_frame',
+];
 
 interface HairPiece {
   sprite: Sprite;
@@ -43,14 +56,14 @@ export class AvatarRig {
   eyeFrame!: Sprite;
   eyeVariant!: Sprite;
   eyeBlink!: Sprite;
-  bangs!: Sprite;
+  bangs: Sprite | null = null;
   hairPieces: HairPiece[] = [];
 
-  // Aksesoris bergerak.
-  wingLeft!: Sprite;
-  wingRight!: Sprite;
-  cloth!: Sprite;
-  headAccessory!: Sprite; // 15a plume (sway trailing)
+  // Aksesoris bergerak (opsional — bisa null bila skin tak punya).
+  wingLeft: Sprite | null = null;
+  wingRight: Sprite | null = null;
+  cloth: Sprite | null = null;
+  headAccessory: Sprite | null = null; // 15a plume (sway trailing)
 
   private tex(key: string): Texture {
     const t = this.textures.get(key);
@@ -58,65 +71,93 @@ export class AvatarRig {
     return t;
   }
 
+  /** Sprite dari layer WAJIB (throw bila hilang — sudah divalidasi di build). */
   private make(key: string): Sprite {
     const s = new Sprite(this.tex(key));
     s.label = key;
     return s;
   }
 
+  /** Sprite dari layer OPSIONAL: null bila tekstur tak dimuat (skin tak punya). */
+  private tryMake(key: string): Sprite | null {
+    const t = this.textures.get(key);
+    if (!t) return null;
+    const s = new Sprite(t);
+    s.label = key;
+    return s;
+  }
+
+  /** Set pivot = posisi (poros rotasi di tempat) bila pivot tersedia di manifest. */
+  private setPivot(sprite: Sprite, pivot?: Vec2): void {
+    if (!pivot) return;
+    sprite.pivot.set(pivot[0], pivot[1]);
+    sprite.position.set(pivot[0], pivot[1]);
+  }
+
   async build(manifest: Manifest): Promise<void> {
     this.manifest = manifest;
 
-    // Kumpulkan semua key unik yang mungkin dipakai (idle + variant mata + variant mulut).
+    // Kumpulkan semua key unik yang mungkin dipakai (idle + variant mata + mulut + blink).
     const keys = new Set<string>(manifest.z_order_idle);
     manifest.eyes.base.forEach((k) => keys.add(k));
     Object.values(manifest.eyes.variants).forEach((k) => keys.add(k));
     Object.values(manifest.mouths).forEach((k) => keys.add(k));
+    if (manifest.blink?.overlay) keys.add(manifest.blink.overlay);
 
-    const bundle: Record<string, string> = {};
-    for (const k of keys) bundle[k] = layerUrl(k);
-    Assets.addBundle('avatar', bundle);
-    const loaded = (await Assets.loadBundle('avatar')) as Record<string, Texture>;
-    for (const k of keys) this.textures.set(k, loaded[k]);
-
-    // --- lapisan belakang: sayap kiri/kanan (flap) ---
-    const back = manifest.groups.back_dynamic.members;
-    this.wingLeft = this.make('1a_back-accessories_left');
-    this.wingRight = this.make('1b_back-accessories_right');
-    for (const [sprite, key] of [
-      [this.wingLeft, '1a_back-accessories_left'],
-      [this.wingRight, '1b_back-accessories_right'],
-    ] as const) {
-      const p = back[key].pivot;
-      sprite.pivot.set(p[0], p[1]);
-      sprite.position.set(p[0], p[1]);
+    // Muat TOLERAN: layer yang 404 di-skip (bukan gagal-total seperti loadBundle).
+    const missing: string[] = [];
+    await Promise.all(
+      [...keys].map(async (k) => {
+        try {
+          this.textures.set(k, (await Assets.load(layerUrl(k))) as Texture);
+        } catch {
+          missing.push(k);
+        }
+      }),
+    );
+    if (missing.length) {
+      console.warn(`[skin ${getSkin()}] ${missing.length} layer opsional tak ada, di-skip:`, missing);
     }
-    this.backWings.addChild(this.wingLeft, this.wingRight);
+    // Layer inti wajib ada — kalau tidak, laporkan jelas (bukan blank misterius).
+    const coreMissing = REQUIRED_LAYERS.filter((k) => !this.textures.has(k));
+    if (coreMissing.length) {
+      throw new Error(`Skin "${getSkin()}" tak lengkap — layer inti hilang: ${coreMissing.join(', ')}`);
+    }
+
+    const back = manifest.groups.back_dynamic?.members;
+    const hair = manifest.groups.hair_dynamic?.members;
+
+    // --- lapisan belakang: sayap kiri/kanan (flap), opsional ---
+    this.wingLeft = this.tryMake('1a_back-accessories_left');
+    this.wingRight = this.tryMake('1b_back-accessories_right');
+    if (this.wingLeft) this.setPivot(this.wingLeft, back?.['1a_back-accessories_left']?.pivot);
+    if (this.wingRight) this.setPivot(this.wingRight, back?.['1b_back-accessories_right']?.pivot);
+    this.backWings.addChild(...([this.wingLeft, this.wingRight].filter(Boolean) as Sprite[]));
     this.backWings.y = TUNING.wings.dropY; // turunkan sayap sedikit
 
-    const hair = manifest.groups.hair_dynamic.members;
+    // --- rambut belakang (opsional per-piece); hanya yg punya pivot ikut sway ---
     for (const key of ['2_back-hair', '3_lefthair_back', '4_righthair_back']) {
-      const s = this.make(key);
-      const p = hair[key].pivot;
-      s.pivot.set(p[0], p[1]);
-      s.position.set(p[0], p[1]);
+      const s = this.tryMake(key);
+      if (!s) continue;
       this.backHair.addChild(s);
-      this.hairPieces.push({ sprite: s, pivot: p });
+      const p = hair?.[key]?.pivot;
+      if (p) {
+        this.setPivot(s, p);
+        this.hairPieces.push({ sprite: s, pivot: p });
+      }
     }
 
-    const leftHand = this.make('5_lefthand');
-    const rightHand = this.make('6_righthand');
+    const leftHand = this.tryMake('5_lefthand');
+    const rightHand = this.tryMake('6_righthand');
 
     this.body = this.make('7_body');
     // Napas: skala vertikal halus dari dasar badan -> pivot bawah-tengah.
     this.body.pivot.set(CANVAS.width / 2, CANVAS.height);
     this.body.position.set(CANVAS.width / 2, CANVAS.height);
 
-    // Aksesoris baju (pendulum), pivot di titik gantung.
-    this.cloth = this.make('7b_body_acessories');
-    const clothPivot = manifest.groups.cloth_dynamic.members['7b_body_acessories'].pivot;
-    this.cloth.pivot.set(clothPivot[0], clothPivot[1]);
-    this.cloth.position.set(clothPivot[0], clothPivot[1]);
+    // Aksesoris baju (pendulum), pivot di titik gantung — opsional.
+    this.cloth = this.tryMake('7b_body_acessories');
+    if (this.cloth) this.setPivot(this.cloth, manifest.groups.cloth_dynamic?.members['7b_body_acessories']?.pivot);
 
     // --- grup kepala ---
     const headbase = this.make('8_headbase');
@@ -128,28 +169,28 @@ export class AvatarRig {
     this.eyeFrame = this.make('10_eyes_frame');
     this.eyeVariant = new Sprite(); // tekstur di-set saat ganti state
     this.eyeVariant.visible = false;
-    this.eyeBlink = new Sprite(this.tex(manifest.blink.overlay));
+    const blinkTex = this.textures.get(manifest.blink.overlay);
+    this.eyeBlink = blinkTex ? new Sprite(blinkTex) : new Sprite(); // tanpa tekstur = tak tampil
     this.eyeBlink.visible = false;
     this.eyes.addChild(this.eyeBg, this.pupilL, this.pupilR, this.eyeFrame, this.eyeVariant, this.eyeBlink);
 
-    const sideHair = this.make('11_side_small_hair');
+    const sideHair = this.tryMake('11_side_small_hair');
 
-    this.bangs = this.make('12_bangs');
-    const bp = hair['12_bangs'].pivot;
-    this.bangs.pivot.set(bp[0], bp[1]);
-    this.bangs.position.set(bp[0], bp[1]);
+    this.bangs = this.tryMake('12_bangs');
+    if (this.bangs) this.setPivot(this.bangs, hair?.['12_bangs']?.pivot);
 
-    const browL = this.make('13_left_eyebrow');
-    const browR = this.make('14_right_eyebrow');
+    const browL = this.tryMake('13_left_eyebrow');
+    const browR = this.tryMake('14_right_eyebrow');
 
-    // Aksesoris kepala (z: 15a plume paling bawah, lalu 15b statis, api paling atas).
-    this.headAccessory = this.make('15a_head_accessories');
-    const accPivot = manifest.groups.head_accessory_dynamic.members['15a_head_accessories'].pivot;
-    this.headAccessory.pivot.set(accPivot[0], accPivot[1]);
-    this.headAccessory.position.set(accPivot[0], accPivot[1]);
-    const headAccStatic = this.make('15b_head_accessories');
+    // Aksesoris kepala (z: 15a plume, lalu 15b statis) — opsional.
+    this.headAccessory = this.tryMake('15a_head_accessories');
+    if (this.headAccessory) {
+      this.setPivot(this.headAccessory, manifest.groups.head_accessory_dynamic?.members['15a_head_accessories']?.pivot);
+    }
+    const headAccStatic = this.tryMake('15b_head_accessories');
 
-    this.head.addChild(
+    // Urutan z dipertahankan; yang null (tak ada di skin) di-skip.
+    const headChildren = [
       headbase,
       this.mouth,
       this.eyes,
@@ -159,7 +200,8 @@ export class AvatarRig {
       browR,
       this.headAccessory,
       headAccStatic,
-    );
+    ].filter(Boolean) as Container[];
+    this.head.addChild(...headChildren);
     const hpv = manifest.groups.head_group.pivot;
     this.head.pivot.set(hpv[0], hpv[1]);
     this.head.position.set(hpv[0], hpv[1]);
@@ -167,8 +209,8 @@ export class AvatarRig {
     // Rambut belakang ikut turun bareng kepala (head di-drop via headTilt).
     this.backHair.y = TUNING.dropY;
 
-    // --- rakit root sesuai z-order (bawah -> atas) ---
-    this.root.addChild(
+    // --- rakit root sesuai z-order (bawah -> atas); yang null di-skip ---
+    const rootChildren = [
       this.backWings,
       this.backHair,
       leftHand,
@@ -176,7 +218,8 @@ export class AvatarRig {
       this.body,
       this.cloth,
       this.head,
-    );
+    ].filter(Boolean) as Container[];
+    this.root.addChild(...rootChildren);
     this.root.pivot.set(CANVAS.width / 2, CANVAS.height / 2);
   }
 }

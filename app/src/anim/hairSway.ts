@@ -16,8 +16,10 @@ export class HairSway {
       piece.sprite.rotation = next * h.gain;
     });
 
-    const b = TUNING.bangs;
-    this.bangsVal = damp(this.bangsVal, headRot, b.smoothing, dt);
-    rig.bangs.rotation = this.bangsVal * b.gain;
+    if (rig.bangs) {
+      const b = TUNING.bangs;
+      this.bangsVal = damp(this.bangsVal, headRot, b.smoothing, dt);
+      rig.bangs.rotation = this.bangsVal * b.gain;
+    }
   }
 }

@@ -33,13 +33,7 @@ export class StateController {
     this.current = name;
     const { rig } = this;
 
-    // Mulut: acak dari `mouths` bila ada (variasi), selain itu `mouth` tunggal.
-    const mouthName =
-      st.mouths && st.mouths.length
-        ? st.mouths[Math.floor(Math.random() * st.mouths.length)]
-        : st.mouth;
-    const mouthKey = mouthName ? this.m.mouths[mouthName] : undefined;
-    if (mouthKey) rig.mouth.texture = rig.textures.get(mouthKey)!;
+    this.applyMouth();
 
     if (st.eyes === 'base') {
       this.baseMode = true;
@@ -59,6 +53,22 @@ export class StateController {
     this.trackingWanted = st.tracking;
   }
 
+  /** Set tekstur mulut dari state saat ini (acak bila `mouths[]`). Dipisah agar
+   *  bisa dipanggil ulang setelah animasi "ngomong" selesai (lihat MouthTalk). */
+  private applyMouth(): void {
+    const st = this.m.states[this.current];
+    if (!st) return;
+    const mouthName =
+      st.mouths && st.mouths.length
+        ? st.mouths[Math.floor(Math.random() * st.mouths.length)]
+        : st.mouth;
+    const key = mouthName ? this.m.mouths[mouthName] : undefined;
+    if (key) {
+      const tex = this.rig.textures.get(key);
+      if (tex) this.rig.mouth.texture = tex;
+    }
+  }
+
   /** Peta hook Claude Code -> reaksi. */
   event(name: string): void {
     const ev = this.m.events[name];
@@ -66,16 +76,21 @@ export class StateController {
       console.warn(`Event tak dikenal: ${name}`);
       return;
     }
-    if (this.flashTimer) {
-      clearTimeout(this.flashTimer);
-      this.flashTimer = null;
-    }
     if (ev.flash) {
-      this.apply(ev.flash);
-      const back = ev.then ?? 'idle';
-      this.flashTimer = setTimeout(() => this.apply(back), FLASH_MS);
+      this.flash(ev.flash, FLASH_MS, ev.then ?? 'idle');
     } else if (ev.state) {
+      if (this.flashTimer) {
+        clearTimeout(this.flashTimer);
+        this.flashTimer = null;
+      }
       this.apply(ev.state);
     }
+  }
+
+  /** Tampilkan state sekejap lalu balik ke `back`. Dipakai event flash & idle emote. */
+  flash(name: string, ms: number = FLASH_MS, back = 'idle'): void {
+    if (this.flashTimer) clearTimeout(this.flashTimer);
+    this.apply(name);
+    this.flashTimer = setTimeout(() => this.apply(back), ms);
   }
 }

@@ -1,12 +1,13 @@
 import { invoke } from '@tauri-apps/api/core';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { SKINS_URL, DEFAULT_SKIN } from '../config';
 
 /**
  * Menu Hitomi in-app untuk overlay Tauri.
  * - Tombol ikon panah (arrow.png) di pojok atas avatar (kanan/kiri sesuai preferensi).
  * - Klik → panah flip ke atas (rotate 180°) + panel menu muncul.
  * - Panel: fill ungu tua #3e2271, border pink #fab3df, teks putih, font Vividly.
- * - Isi: slider ukuran karakter, toggle sisi bubble (kanan/kiri), Keluar.
+ * - Isi: ukuran karakter, skin (set tekstur), toggle sisi bubble (kanan/kiri), Keluar.
  *
  * Tembus-klik SENGAJA tidak di sini (dulu bikin menu ngunci diri) — kontrolnya via tray.
  */
@@ -15,6 +16,48 @@ const PINK = '#fab3df';
 const FONT = "'Vividly', system-ui, sans-serif";
 
 type Side = 'right' | 'left';
+interface SkinEntry {
+  id: string;
+  label: string;
+}
+
+/** Isi baris skin dgn tombol per-skin (dari skins.json). Ganti skin → simpan &
+ *  reload (rig di-build ulang pakai tekstur skin baru; cara paling aman & simpel). */
+async function buildSkinButtons(container: HTMLElement): Promise<void> {
+  const current = localStorage.getItem('hitomi.skin') || DEFAULT_SKIN;
+  let skins: SkinEntry[] = [{ id: DEFAULT_SKIN, label: DEFAULT_SKIN }];
+  try {
+    const res = await fetch(SKINS_URL);
+    if (res.ok) skins = ((await res.json()) as { skins: SkinEntry[] }).skins;
+  } catch {
+    /* pakai default bila skins.json gagal dimuat */
+  }
+  for (const sk of skins) {
+    const active = sk.id === current;
+    const b = document.createElement('button');
+    b.textContent = sk.label;
+    Object.assign(b.style, {
+      padding: '6px 8px',
+      border: `1.5px solid ${PINK}`,
+      borderRadius: '7px',
+      background: active ? PINK : 'transparent',
+      color: active ? PURPLE : '#ffffff',
+      fontFamily: FONT,
+      fontSize: '14px',
+      fontWeight: active ? '700' : '400',
+      lineHeight: '1',
+      cursor: active ? 'default' : 'pointer',
+      textAlign: 'left',
+    });
+    if (!active) {
+      b.addEventListener('click', () => {
+        localStorage.setItem('hitomi.skin', sk.id);
+        window.location.reload(); // rebuild rig dgn tekstur skin baru
+      });
+    }
+    container.appendChild(b);
+  }
+}
 
 export function mountHitomiMenu(): void {
   // Seret window dari area avatar (kanvas pointer-events:none → mousedown jatuh ke #app).
@@ -142,6 +185,17 @@ export function mountHitomiMenu(): void {
   }
   sizeRow.append(sizeLabel, grid);
 
+  // --- Skin (set tekstur karakter) ---
+  const skinRow = document.createElement('div');
+  rowStyle(skinRow);
+  const skinLabel = document.createElement('div');
+  skinLabel.textContent = 'Skin';
+  skinLabel.style.marginBottom = '6px';
+  const skinList = document.createElement('div');
+  Object.assign(skinList.style, { display: 'flex', flexDirection: 'column', gap: '5px' });
+  skinRow.append(skinLabel, skinList);
+  void buildSkinButtons(skinList);
+
   // --- Sisi bubble (kanan/kiri) — juga memindah posisi menu sebagai preview ---
   let side: Side = (localStorage.getItem('hitomi.bubbleSide') as Side) || 'right';
   const applySide = (s: Side): void => {
@@ -157,7 +211,7 @@ export function mountHitomiMenu(): void {
 
   const quitItem = makeItem('Keluar 💔', () => void invoke('quit_app'));
 
-  panel.append(sizeRow, sideItem, quitItem);
+  panel.append(sizeRow, skinRow, sideItem, quitItem);
 
   // --- Buka/tutup ---
   let open = false;

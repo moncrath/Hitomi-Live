@@ -7,7 +7,16 @@ const PURPLE = '#3e2271';
 const PINK = '#fab3df';
 const FONT = "'Vividly', system-ui, sans-serif";
 
-export async function mountHitomiBubble(): Promise<void> {
+interface BubbleHooks {
+  onShow?: () => void; // bubble muncul (mulai animasi "ngomong")
+  onHide?: () => void; // bubble hilang (berhenti "ngomong")
+}
+
+export interface BubbleController {
+  hide: () => void;
+}
+
+export async function mountHitomiBubble(hooks: BubbleHooks = {}): Promise<BubbleController> {
   const bubble = document.createElement('div');
   Object.assign(bubble.style, {
     position: 'fixed',
@@ -33,6 +42,19 @@ export async function mountHitomiBubble(): Promise<void> {
   document.body.appendChild(bubble);
 
   let hideTimer: ReturnType<typeof setTimeout> | null = null;
+  let visible = false;
+
+  const hide = (): void => {
+    if (!visible) return;
+    visible = false;
+    if (hideTimer) {
+      clearTimeout(hideTimer);
+      hideTimer = null;
+    }
+    bubble.style.opacity = '0';
+    bubble.style.transform = 'translateY(-6px) scale(.96)';
+    hooks.onHide?.();
+  };
 
   const show = (text: string): void => {
     const side = (localStorage.getItem('hitomi.bubbleSide') as 'left' | 'right') || 'right';
@@ -43,15 +65,16 @@ export async function mountHitomiBubble(): Promise<void> {
     bubble.textContent = text;
     bubble.style.opacity = '1';
     bubble.style.transform = 'translateY(0) scale(1)';
+    visible = true;
+    hooks.onShow?.();
 
     if (hideTimer) clearTimeout(hideTimer);
-    const dur = Math.min(9000, 2600 + text.length * 45); // makin panjang, makin lama
-    hideTimer = setTimeout(() => {
-      bubble.style.opacity = '0';
-      bubble.style.transform = 'translateY(-6px) scale(.96)';
-    }, dur);
+    const dur = Math.min(16000, 4000 + text.length * 95); // cukup lama buat dibaca
+    hideTimer = setTimeout(hide, dur);
   };
 
   const { listen } = await import('@tauri-apps/api/event');
   await listen<{ text: string }>('hitomi://bubble', (e) => show(e.payload.text));
+
+  return { hide };
 }

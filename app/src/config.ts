@@ -1,10 +1,18 @@
 // Path aset. Dilayani lewat publicDir (../assets) => root URL.
 export const AVATAR = 'hitomi';
-export const MANIFEST_URL = `/avatar/${AVATAR}/manifest.json`;
-export const LAYERS_BASE = `/avatar/${AVATAR}/layers/`;
+export const DEFAULT_SKIN = 'Roccia';
+export const MANIFEST_URL = `/avatar/${AVATAR}/manifest.json`; // template/fallback bersama
+export const SKINS_URL = `/avatar/${AVATAR}/skins.json`;
 
-/** URL PNG dari key layer (tanpa ekstensi), mis. "8_headbase" -> /avatar/hitomi/layers/8_headbase.png */
-export const layerUrl = (key: string): string => `${LAYERS_BASE}${key}.png`;
+/** Skin aktif = set tekstur karakter (folder di `skin/`). Disimpan di localStorage. */
+export const getSkin = (): string => localStorage.getItem('hitomi.skin') || DEFAULT_SKIN;
+
+/** Manifest KHUSUS skin (opsional). Bila ada → geometri/pivot/z-order milik skin itu
+ *  sendiri (karakter beda bentuk). Bila tak ada → pakai `MANIFEST_URL` bersama. */
+export const skinManifestUrl = (): string => `/avatar/${AVATAR}/skin/${getSkin()}/manifest.json`;
+
+/** URL PNG dari key layer utk skin aktif, mis. "8_headbase" -> /avatar/hitomi/skin/Roccia/8_headbase.png */
+export const layerUrl = (key: string): string => `/avatar/${AVATAR}/skin/${getSkin()}/${key}.png`;
 
 // Kanvas seragam semua layer (registrasi presisi, tanpa offset manual).
 export const CANVAS = { width: 1080, height: 1440 } as const;

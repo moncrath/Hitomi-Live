@@ -10,6 +10,9 @@ out/
 # Tauri / Rust
 src-tauri/target/
 
+# Exe portable (salinan di root biar gampang dicari; jangan di-commit)
+*.exe
+
 # Env & secrets
 .env
 .env.*

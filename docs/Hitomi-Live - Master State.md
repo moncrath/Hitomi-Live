@@ -37,8 +37,9 @@ Claude Code (di Antigravity)
 ```
 
 ## Aset seni ✅ (diterima)
-33 layer PNG di `assets/avatar/hitomi/layers/`, kanvas seragam **1080×1440**, penamaan bernomor
-(z besar = atas). Karakter: chibi gothic-lolita, twin-tail ungu-pink.
+Layer PNG per-skin di `assets/avatar/hitomi/skin/<id>/` (skin aktif: **Roccia** — Wuthering Waves), kanvas
+seragam **1080×1440**, penamaan bernomor (z besar = atas). Karakter: chibi gothic-lolita, twin-tail ungu-pink.
+Manifest/rig dipakai bersama semua skin; daftar skin di `skins.json`.
 - Base: `1_back-accessories` → `8_headbase` · badan · 2 tangan (di belakang badan) · 3 grup rambut.
 - **Mata:** base tracking (`10_eyes_background`+`pupil_left/right`+`frame`) + 7 variant utuh
   (`10a` closed, `10b` closed_happy, `10c` dizzy, `10d` shocked, `10e` angry, `10f` love/yandere, `10g` sad).
@@ -56,12 +57,18 @@ Claude Code (di Antigravity)
 
 ### ✅ Done — Fase 2: Bubble Teks
 - Kalimat terakhir Hitomi dari transkrip `.jsonl` → bubble overlay (hook Stop → `/bubble` → `hitomi://bubble`).
+- Animasi "ngomong" (mata `closed_happy` + mulut `9aa`/`9ab`), idle emote, mood error (dizzy/marah), bubble "thinking" berputar saat mikir/ngoding.
+
+### ✅ Done — Ganti Skin
+- Menu → **Skin**: pilih set tekstur karakter (`skin/<id>/`, data-driven `skins.json`). Skin aktif: **Roccia**. Menyiapkan skin orisinal Hitomi tanpa ubah kode.
 
 ### Dibuang (sadar)
 - **TTS / lip-sync** — kompleksitas + latency + butuh pipeline audio. (Catatan: TTS TIDAK makan token Claude.)
 - **Live2D rig** — keunggulan utamanya (lip-sync halus) nggak kepakai tanpa TTS; ongkos aset/lisensi/berat nggak sepadan.
 
 ## Decision Log
+- **2026-07-30** — **Distribusi: 1 exe portable + hook global universal.** `tauri build --no-bundle` = binary self-contained (`target/release/app.exe`, salin bebas, jalan tanpa installer; butuh WebView2 bawaan Win11). Hook dipindah GLOBAL (`~/.claude/settings.json` → `~/.claude/hooks/hitomi-notify.mjs`) supaya avatar portable: **jalankan 1 exe + copy `CLAUDE.md` ke project baru** (persona), avatar auto-bereaksi tanpa daftar hook per-project. Cakupan **universal** (semua sesi Claude Code, apapun persona; matikan exe = avatar diam) — dipilih user ketimbang auto-gate per-Hitomi. Merge non-destruktif (backup `settings.json.bak`, `permissions` utuh); hook per-project repo ini dikosongkan agar tak dobel-fire. Aset avatar ke-bake saat build → skin baru = rebuild exe.
+- **2026-07-30** — **Skin fleksibel: manifest per-skin (opsional) + rig toleran.** Karakter beda = bentuk/pivot/z-order beda → tiap skin BOLEH punya `skin/<id>/manifest.json` sendiri (geometri milik skin itu); bila tak ada → fallback ke `manifest.json` bersama (cocok utk recolor/varian sebentuk). Rig kini **toleran**: hanya layer INTI wajib (`7_body`,`8_headbase`,`9b_mouth_closed`, mata base `10_*`); layer opsional (sayap/tangan/cloth/side-hair/bangs/alis/aksesoris/variant mata/mulut ekstra) yang hilang **di-skip** (`Assets.load` per-key + `Promise.all`, bukan `loadBundle` gagal-total), modul animasi terkait di-guard null. Jadi skin boleh beda jumlah file; kurang inti = error jelas. Ganti skin lewat menu → simpan `hitomi.skin` + `reload()` (rebuild rig). Skrip `scripts/check-skins.mjs` bedakan inti (✖) vs opsional (⚠). Loader cek `content-type` (Vite balikin `index.html` 200 utk path tak ada). *(Revisi dari rencana awal "1 manifest bersama" — terlalu kaku utk karakter beda bentuk.)*
 - **2026-07-29** — **Bubble teks = kalimat terakhir dari transkrip `.jsonl` (bukan streaming/TTS).** `notify.mjs` pada hook `Stop` baca `transcript_path`, ambil assistant terakhir yang ada teks, strip markdown ringan, ambil kalimat terakhir (cap 180). Endpoint `/bubble` terpisah dari `/event` (teks bebas, validasi longgar tapi di-cap 600 char & 4KB body; ditampilkan via `textContent` → aman). **0 token tambahan.**
 - **2026-07-29** — **Ekspresi: mulut random per state via `StateDef.mouths[]`.** `mikir`/`ngoding` tetap mata base (tracking hidup) tapi mulut acak (pout/bleeh, happy1/frawl) biar beda dari idle & terasa hidup. Flash sukses/love 0.9→1.6s.
 - **2026-07-29** — **Bridge diserap ke dalam overlay (Rust `tiny_http`), bukan proses Node terpisah.** Tujuan: "launch app → semua jalan" tanpa start manual + jadi 1 exe mandiri (no Node runtime). Rust listen `127.0.0.1:17872/event`, validasi identik bridge Node (kind∈event/state, nama `^[A-Za-z0-9_]+$`≤48, body≤1KB), lalu `emit("hitomi://signal")` ke webview. Frontend: di Tauri pakai `listen()` event Tauri; di browser tetap WS `BridgeClient` (dev). Bind pakai retry 10× (tahan race port saat hot-reload). Node `bridge/` disimpan untuk browser-dev/back-up. **Hook sendiri sudah otomatis (level engine), tak perlu start apa pun.**

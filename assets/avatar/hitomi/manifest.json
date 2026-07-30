@@ -84,7 +84,9 @@
     "pout":    "9h_mouth_pout",
     "angry":   "9i_mouth_angry",
     "frawl":   "9j_mouth_frawl",
-    "bleeh":   "9k_mouth_bleeh"
+    "bleeh":   "9k_mouth_bleeh",
+    "talk_open":   "9aa_mouth_open",
+    "talk_closed": "9ab_mouth_closed"
   },
 
   "brows": { "left": "13_left_eyebrow", "right": "14_right_eyebrow", "static": true },
@@ -120,7 +122,8 @@
     "PostToolUse":       { "state": "ngoding", "on_error": "error" },
     "Notification":      { "state": "mikir" },
     "Stop":              { "flash": "sukses", "then": "idle" },
-    "error_repeat":      { "state": "marah", "note": "gagal beruntun >= 3x" }
+    "coding_error":      { "flash": "dizzy", "then": "idle", "note": "1 tool error -> pusing" },
+    "error_streak":      { "flash": "marah", "then": "idle", "note": "gagal beruntun >= 3x -> kesel" }
   },
 
   "bubble": {

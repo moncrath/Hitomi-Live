@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Hitomi Live",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "identifier": "com.hitomi.live",
   "build": {
     "frontendDist": "../dist",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Hitomi Live (overlay — dev)",
+        "title": "Hitomi Live",
         "width": 500,
         "height": 680,
         "resizable": true,

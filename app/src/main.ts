@@ -5,6 +5,7 @@ import { loadManifest } from './manifest';
 import { PointerTracker } from './pointer';
 import { AvatarRig } from './rig/AvatarRig';
 import { StateController } from './state/StateController';
+import { IdleEmote } from './state/idleEmote';
 import { DevPanel } from './ui/DevPanel';
 import { HeadTilt } from './anim/headTilt';
 import { HairSway } from './anim/hairSway';
@@ -14,9 +15,11 @@ import { Breathing } from './anim/breathing';
 import { WingFlap } from './anim/wingFlap';
 import { ClothSway } from './anim/clothSway';
 import { HeadAccessorySway } from './anim/headAccessorySway';
+import { TalkAnim } from './anim/talkAnim';
 import { isTauri, startTauriCursor } from './tauriCursor';
 import { mountHitomiMenu } from './ui/HitomiMenu';
-import { mountHitomiBubble } from './ui/HitomiBubble';
+import { mountHitomiBubble, type BubbleController } from './ui/HitomiBubble';
+import { ThinkingBubble } from './ui/ThinkingBubble';
 import { listenTauriSignal } from './bridge/tauriSignal';
 
 async function boot(): Promise<void> {
@@ -42,13 +45,17 @@ async function boot(): Promise<void> {
   if (isTauri()) {
     app.canvas.style.pointerEvents = 'none';
     mountHitomiMenu();
-    void mountHitomiBubble();
   }
 
   const manifest = await loadManifest();
   const rig = new AvatarRig();
   await rig.build(manifest);
   app.stage.addChild(rig.root);
+
+  // Bubble "thinking" (muncul saat mikir/ngoding), align ke kanvas avatar.
+  const thinking = new ThinkingBubble();
+  await thinking.load();
+  rig.root.addChild(thinking.container);
 
   // Di Tauri: kursor dibaca global (poller), jadi matikan listener DOM biar tak bentrok.
   const ptr = new PointerTracker(window, !isTauri());
@@ -64,6 +71,7 @@ async function boot(): Promise<void> {
   const wingFlap = new WingFlap();
   const clothSway = new ClothSway();
   const headAccessorySway = new HeadAccessorySway();
+  const talkAnim = new TalkAnim();
 
   const layout = (): void => {
     const s =
@@ -84,17 +92,43 @@ async function boot(): Promise<void> {
     clothSway.update(rig, headRot, dt);
     headAccessorySway.update(rig, headRot, dt);
     eyeTracking.update(rig, ptr, state.trackingActive, dt);
-    blink.update(rig, state.baseMode, dt);
+    if (!talkAnim.isActive) blink.update(rig, state.baseMode, dt);
+    talkAnim.update(rig, dt); // kuasai mata (closed_happy) + mulut saat "ngomong"
+    thinking.setVisible(state.current === 'mikir' || state.current === 'ngoding');
+    thinking.update(dt);
   });
+
+  // Bubble + animasi "ngomong": mata closed_happy + mulut bergerak selama bubble
+  // tampil; saat selesai, wajah di-restore ke state logis saat ini.
+  let bubble: BubbleController | null = null;
+  if (isTauri()) {
+    bubble = await mountHitomiBubble({
+      onShow: () => talkAnim.start(),
+      onHide: () => {
+        talkAnim.stop();
+        state.apply(state.current);
+      },
+    });
+  }
+
+  // Idle emote: sesekali ganti ekspresi lucu saat idle (bukan pas kerja/ngomong).
+  const idleEmote = new IdleEmote(state, () => state.current === 'idle' && !talkAnim.isActive);
+  idleEmote.start();
 
   // DevPanel hanya untuk dev di browser; di overlay Tauri kontrol lewat tray.
   if (!isTauri()) new DevPanel(state, manifest);
 
   // Terima sinyal hook Claude Code -> map ke event/state.
   // Di Tauri: bridge in-process (Rust) via event Tauri. Di browser: WS bridge Node (dev).
+  // Aktivitas baru (prompt/tool) → berhenti "ngomong" (sembunyikan bubble).
+  const ACTIVITY = new Set(['UserPromptSubmit', 'PreToolUse', 'PostToolUse', 'Notification']);
   const onSignal = (s: { kind: string; name: string }): void => {
-    if (s.kind === 'event') state.event(s.name);
-    else state.apply(s.name);
+    if (s.kind === 'event') {
+      if (ACTIVITY.has(s.name)) bubble?.hide();
+      state.event(s.name);
+    } else {
+      state.apply(s.name);
+    }
   };
   if (isTauri()) {
     void listenTauriSignal(onSignal);

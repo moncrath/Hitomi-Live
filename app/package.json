@@ -1,7 +1,7 @@
 {
   "name": "hitomi-live-app",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Overlay PNGtuber (2.5D) Hitomi — renderer pixi.js (Fase 1a)",
   "scripts": {

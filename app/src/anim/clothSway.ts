@@ -8,6 +8,7 @@ export class ClothSway {
   private v = 0;
 
   update(rig: AvatarRig, headRot: number, dt: number): void {
+    if (!rig.cloth) return; // skin tanpa aksesoris baju
     const c = TUNING.cloth;
     this.t += dt;
     const idle = Math.sin(this.t * c.idleSpeed) * c.idleAmp;

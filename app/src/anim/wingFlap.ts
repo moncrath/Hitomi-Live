@@ -8,6 +8,7 @@ export class WingFlap {
   private react = 0;
 
   update(rig: AvatarRig, headRot: number, dt: number): void {
+    if (!rig.wingLeft || !rig.wingRight) return; // skin tanpa sayap
     const w = TUNING.wings;
     this.t += dt;
     const flap = Math.sin(this.t * w.idleSpeed) * w.idleAmp;
