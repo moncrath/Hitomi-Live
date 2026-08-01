@@ -9,6 +9,14 @@ Semua perubahan penting proyek ini dicatat di sini.
   Live2D sebagai implementasi kedua di branch `live2d`.
 
 ### Changed
+- **Fisika rambut jadi nyata (pegas + deformasi mesh).** Rambut belakang tak lagi sprite kaku:
+  - `springStep` (pegas orde-2 dgn kecepatan) menggantikan peredam orde-1 → rambut **melewati
+    target lalu bergoyang** sebelum diam, bukan sekadar meluncur.
+  - Rambut dirender sebagai `MeshPlane` (kisi 2×14). Tiap baris vertex digeser sebanding
+    **kuadrat** jarak dari pivot → pangkal diam, ujung melengkung.
+  - Dua pegas per potong (pangkal + ujung yg lebih lembek); selisihnya = besar lengkungan,
+    jadi rambut melengkung saat bergerak & lurus sendiri saat diam.
+  - Terukur: puncak lengkung ~154px, 57 fps, tanpa artefak. Tuning di `TUNING.hair`.
 - **Polish bubble teks:** ekor bubble (segitiga ber-outline pink) menunjuk ke arah kepala avatar,
   ikut sisi kiri/kanan; animasi muncul pakai pop overshoot dengan titik tumpu di pangkal ekor.
 - Bubble kini juga di-mount saat dev di browser; DevPanel dapat tombol **"bubble teks"** untuk

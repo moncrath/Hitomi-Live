@@ -24,7 +24,19 @@ export const BRIDGE_URL = 'ws://127.0.0.1:17872/ws';
 // makin kecil makin gesit, makin besar makin ngelag).
 export const TUNING = {
   head: { smoothing: 0.0009, maxRot: 0.12, parallaxX: 16, parallaxY: 9 },
-  hair: { smoothing: 0.45, gain: 1.7 },
+  // Rambut belakang = pegas orde-2 (melewati target lalu bergoyang), plus lengkungan
+  // mesh: ujung rambut punya pegas KEDUA yang lebih lembek sehingga tertinggal dari
+  // pangkalnya -> selisihnya jadi besar lengkungan.
+  hair: {
+    stiffness: 70,
+    damping: 0.12,
+    gain: 1.7,
+    tipStiffness: 26, // ujung lebih lembek dari pangkal
+    tipDamping: 0.2,
+    // px pergeseran ujung per radian selisih pangkal-ujung (kanvas 1080x1440).
+    // 650 => puncak ~145px saat kursor dilempar dari tepi ke tepi; terasa berat tapi tak lebay.
+    bendPixels: 650,
+  },
   bangs: { smoothing: 0.16, gain: 0.75 },
   // Look-at mata: reach = fraksi ukuran avatar; kursor sejauh ~reach dari mata = deflect penuh.
   eyes: { smoothing: 0.0035, reach: 0.5 },

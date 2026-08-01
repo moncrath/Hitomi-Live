@@ -1,6 +1,7 @@
 import { Assets, Container, Sprite, Texture } from 'pixi.js';
 import { CANVAS, TUNING, layerUrl, getSkin } from '../config';
 import type { Manifest, Vec2 } from '../types';
+import { makeHairMesh, type HairMesh } from './hairMesh';
 
 /** Layer inti yang WAJIB ada di tiap skin (rig tak berarti tanpa ini). Sisanya
  *  (sayap, tangan, cloth, side-hair, bangs, alis, aksesoris kepala, variant mata,
@@ -16,7 +17,8 @@ const REQUIRED_LAYERS = [
 ];
 
 interface HairPiece {
-  sprite: Sprite;
+  /** Mesh (bukan sprite): selain diputar, bisa dilengkungkan. */
+  hair: HairMesh;
   pivot: Vec2;
 }
 
@@ -135,15 +137,21 @@ export class AvatarRig {
     this.backWings.addChild(...([this.wingLeft, this.wingRight].filter(Boolean) as Sprite[]));
     this.backWings.y = TUNING.wings.dropY; // turunkan sayap sedikit
 
-    // --- rambut belakang (opsional per-piece); hanya yg punya pivot ikut sway ---
+    // --- rambut belakang (opsional per-piece) ---
+    // Yang punya pivot dijadikan MESH (bisa dilengkungkan); yang tidak punya pivot
+    // tetap sprite diam — mesh tanpa poros tak ada artinya.
     for (const key of ['2_back-hair', '3_lefthair_back', '4_righthair_back']) {
-      const s = this.tryMake(key);
-      if (!s) continue;
-      this.backHair.addChild(s);
+      const tex = this.textures.get(key);
+      if (!tex) continue;
       const p = hair?.[key]?.pivot;
       if (p) {
-        this.setPivot(s, p);
-        this.hairPieces.push({ sprite: s, pivot: p });
+        const hm = makeHairMesh(tex, p);
+        hm.mesh.label = key;
+        this.backHair.addChild(hm.mesh);
+        this.hairPieces.push({ hair: hm, pivot: p });
+      } else {
+        const s = this.tryMake(key);
+        if (s) this.backHair.addChild(s);
       }
     }
 
