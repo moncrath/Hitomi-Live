@@ -99,7 +99,13 @@ export class PngRenderer implements AvatarRenderer {
     this.headAccessorySway.update(rig, headRot, dt);
     this.eyeTracking.update(rig, ptr, this.state.trackingActive, dt);
     // Setelah tracking: ekspresi pupil menumpang di atas posisi hasil tracking.
-    if (this.state.baseMode) this.pupilFx.update(rig, this.state.current, dt);
+    // Saat mata variant tampil, pupil di-reset — bukan sekadar dilewati — supaya
+    // efeknya tak membeku dan terbawa waktu mata normal balik.
+    if (this.state.baseMode) {
+      this.pupilFx.update(rig, this.state.current, dt);
+    } else {
+      this.pupilFx.reset(rig);
+    }
     // TalkAnim menguasai mata+mulut selama aktif, jadi blink dimatikan.
     if (!this.talk.isActive) this.blink.update(rig, this.state.baseMode, dt);
     this.talk.update(rig, dt);

@@ -31,6 +31,8 @@ export interface DynamicMember {
   bend?: number;
   /** Render sebagai mesh yang bisa melengkung. Default: ya untuk rambut, tidak untuk sisanya. */
   deform?: boolean;
+  /** Geser layer ini [dx, dy] px tanpa ekspor ulang aset — untuk merapikan posisi. */
+  offset?: Vec2;
 }
 
 /** Efek pupil per-state (prosedural — tanpa aset tambahan). */

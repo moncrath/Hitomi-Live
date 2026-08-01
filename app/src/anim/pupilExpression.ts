@@ -71,6 +71,23 @@ export class PupilExpression {
     }
   }
 
+  /**
+   * Kembalikan pupil ke netral SEKETIKA. Dipanggil saat mata variant sedang tampil
+   * (pupil tak kelihatan), supaya efek yang sedang jalan tidak membeku lalu ikut
+   * terbawa saat mata normal muncul lagi — dulu ini bikin pupil normal masih
+   * berputar setelah keluar dari `dizzy`.
+   */
+  reset(rig: AvatarRig): void {
+    this.scale = 1;
+    this.ox = this.oy = this.shake = this.pulseAmt = this.spinSpeed = 0;
+    this.angle = 0;
+    this.applyTexture(rig, undefined);
+    for (const pupil of [rig.pupilL, rig.pupilR]) {
+      pupil.scale.set(1);
+      pupil.rotation = 0;
+    }
+  }
+
   /** Pasang tekstur pupil khusus (hati/spiral); tanpa `tex` → balik ke pupil normal. */
   private applyTexture(rig: AvatarRig, tex?: { left: string; right: string }): void {
     const base = rig.manifest.eyes.pupils;

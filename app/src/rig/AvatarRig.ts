@@ -168,6 +168,7 @@ export class AvatarRig {
       // --- sayap / panel belakang ---
       if (wingPivots[key]) {
         this.setPivot(sprite, wingPivots[key].pivot);
+        this.applyOffset(sprite, wingPivots[key].offset);
         this.wings.push(sprite);
         this.backWings.addChild(sprite);
         if (!wingsAdded) {
@@ -181,6 +182,7 @@ export class AvatarRig {
       // --- aksesoris baju (pendulum) ---
       if (clothPivots[key]) {
         this.setPivot(sprite, clothPivots[key].pivot);
+        this.applyOffset(sprite, clothPivots[key].offset);
         this.cloths.push(sprite);
         this.root.addChild(sprite);
         continue;
@@ -195,6 +197,7 @@ export class AvatarRig {
       // --- aksesoris kepala yang bergoyang (trailing di dalam head) ---
       if (headAccPivots[key]) {
         this.setPivot(sprite, headAccPivots[key].pivot);
+        this.applyOffset(sprite, headAccPivots[key].offset);
         this.headAccessories.push(sprite);
         parent.addChild(sprite);
         continue;
@@ -241,7 +244,15 @@ export class AvatarRig {
   private makeDeformPiece(key: string, def: DynamicMember, inHead: boolean): DeformPiece {
     const hair = makeHairMesh(this.tex(key), def.pivot);
     hair.mesh.label = key;
+    this.applyOffset(hair.mesh, def.offset);
     return { hair, pivot: def.pivot, gain: def.gain ?? 1, bend: def.bend ?? 1, inHead };
+  }
+
+  /** Geser layer dari posisi kanvasnya (poros putar ikut bergeser bersamanya). */
+  private applyOffset(node: { x: number; y: number }, offset?: Vec2): void {
+    if (!offset) return;
+    node.x += offset[0];
+    node.y += offset[1];
   }
 
   /** Muat semua tekstur yang mungkin dipakai; yang 404 di-skip (bukan gagal-total). */
