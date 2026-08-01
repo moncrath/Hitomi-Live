@@ -14,6 +14,7 @@ import { ClothSway } from '../anim/clothSway';
 import { HeadAccessorySway } from '../anim/headAccessorySway';
 import { TalkAnim } from '../anim/talkAnim';
 import { PupilExpression } from '../anim/pupilExpression';
+import { HandMotion } from '../anim/handMotion';
 import type { AvatarRenderer } from './AvatarRenderer';
 
 /**
@@ -35,6 +36,7 @@ export class PngRenderer implements AvatarRenderer {
   private readonly headAccessorySway = new HeadAccessorySway();
   private readonly talk = new TalkAnim();
   private readonly pupilFx = new PupilExpression();
+  private readonly hands = new HandMotion();
 
   constructor(private readonly ptr: PointerTracker) {}
 
@@ -92,6 +94,8 @@ export class PngRenderer implements AvatarRenderer {
   update(dt: number): void {
     const { rig, ptr } = this;
     this.breathing.update(rig, dt);
+    // Tangan mengetik saat tool jalan — menyambungkan avatar dgn apa yang benar-benar terjadi.
+    this.hands.update(rig, this.breathing.phase, this.state.current === 'ngoding', dt);
     const headRot = this.headTilt.update(rig, ptr, dt);
     this.hairSway.update(rig, headRot, dt);
     this.wingFlap.update(rig, headRot, dt);

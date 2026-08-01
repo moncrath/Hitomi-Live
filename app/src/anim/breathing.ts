@@ -5,9 +5,13 @@ import type { AvatarRig } from '../rig/AvatarRig';
 export class Breathing {
   private t = 0;
 
+  /** Fase napas saat ini (-1..1). Dipakai bagian lain (mis. tangan) agar seirama. */
+  get phase(): number {
+    return Math.sin(this.t * TUNING.breath.speed);
+  }
+
   update(rig: AvatarRig, dt: number): void {
     this.t += dt;
-    const s = 1 + Math.sin(this.t * TUNING.breath.speed) * TUNING.breath.amount;
-    rig.body.scale.set(1, s);
+    rig.body.scale.set(1, 1 + this.phase * TUNING.breath.amount);
   }
 }

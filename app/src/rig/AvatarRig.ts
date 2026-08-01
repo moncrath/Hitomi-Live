@@ -9,6 +9,8 @@ const DEFAULT_ROLES: Required<Roles> = {
   headbase: '8_headbase',
   mouth: '9b_mouth_closed',
   bangs: '12_bangs',
+  handLeft: '5_lefthand',
+  handRight: '6_righthand',
 };
 
 /**
@@ -67,6 +69,8 @@ export class AvatarRig {
   eyeVariant!: Sprite;
   eyeBlink!: Sprite;
   bangs: Sprite | null = null;
+  handLeft: Sprite | null = null;
+  handRight: Sprite | null = null;
   hairPieces: DeformPiece[] = [];
   /** Rantai/kain yang ikut melengkung (opt-in `deform: true` di manifest). */
   clothPieces: DeformPiece[] = [];
@@ -224,6 +228,16 @@ export class AvatarRig {
       } else if (key === this.roles.bangs) {
         this.bangs = sprite;
         this.setPivot(sprite, hairPivots[key]?.pivot);
+      } else if (key === this.roles.handLeft || key === this.roles.handRight) {
+        // Poros di bahu (bila didaftarkan) supaya rotasi kecil berayun dari sana,
+        // bukan dari pojok kanvas.
+        const def = manifest.groups.hand_dynamic?.members[key];
+        if (def) {
+          this.setPivot(sprite, def.pivot);
+          this.applyOffset(sprite, def.offset);
+        }
+        if (key === this.roles.handLeft) this.handLeft = sprite;
+        else this.handRight = sprite;
       }
       parent.addChild(sprite);
     }

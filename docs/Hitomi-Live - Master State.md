@@ -19,6 +19,8 @@ yang jalan, punya hooks). Overlay dibuat **IDE-agnostic** biar nggak tergantung 
 
 🟢 **Fase 2 SELESAI — bubble teks.** Hook `Stop` → `notify.mjs` baca transkrip `.jsonl` → kalimat terakhir Hitomi → `POST /bubble` → Rust emit `hitomi://bubble` → overlay tampil bubble (ungu/pink, font Vividly, sisi ikut `bubbleSide`, auto-hilang). **0 token, no TTS.** Ekspresi juga di-boost: `mikir`/`ngoding` mulut random (pout/bleeh, happy1/frawl), flash 1.6s.
 
+🟢 **v1.1.0 (2026-08-02) — karakter orisinal + rig hidup.** Skin **Hitomi orisinal** (maid gothic, telinga kelinci, ahoge, rantai) menggantikan Roccia. Rig jadi **data-driven** (nama layer bebas via `roles`; nomor layer ≥ 8 = grup kepala; opsi per-layer `gain`/`bend`/`deform`/`offset`). **Fisika rambut**: pegas orde-2 + deformasi mesh `MeshPlane` (pangkal diam, ujung melengkung). **Ekspresi lewat pupil** (skala/geser/getar/putar/denyut + tekstur hati & spiral) — eye-tracking **tetap hidup saat berekspresi**, yang tak mungkin di sistem variant-mata lama. **Gerak tangan** (napas + pose saat ngoding). TTS & Live2D dievaluasi lalu dibatalkan (lihat Decision Log).
+
 ## Tech Stack
 - **Overlay shell:** ✅ **Tauri v2** (window transparan, frameless, always-on-top; tembus-klik toggle via tray). *(Electron = plan B, tak dipakai.)*
 - **Render avatar:** Web + **pixi.js** — sprite berlayer, animasi prosedural.

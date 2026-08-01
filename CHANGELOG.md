@@ -3,7 +3,41 @@
 Semua perubahan penting proyek ini dicatat di sini.
 
 ## [Unreleased]
+
+## [1.1.0] - 2026-08-02
 ### Added
+- **Skin orisinal Hitomi** menggantikan Roccia (yang dihapus): maid gothic, telinga kelinci,
+  bandana depan-belakang, ahoge, rantai berliontin. Kini satu-satunya skin & jadi default.
+- **Rig data-driven**: nama layer bebas per-skin lewat `roles`; penempatan grup kepala
+  ditentukan nomor layer (≥ 8 ikut kepala) — bukan lagi daftar hardcode.
+  Opsi per-layer: `gain`, `bend`, `deform`, `offset`.
+- **Fisika rambut**: pegas orde-2 + deformasi mesh (`MeshPlane`), lihat 1.1.0 Changed.
+- **Ekspresi lewat pupil** (`PupilExpression`): skala, geser, getar, putar, denyut — semua
+  prosedural per-state di manifest; plus tekstur pupil khusus (hati untuk `love`,
+  spiral untuk `dizzy`). Eye-tracking **tetap hidup saat berekspresi**.
+- **Gerak tangan** (`HandMotion`): ikut napas (selalu) + pose saat `ngoding`.
+- Manifest luar dirapikan jadi **TEMPLATE** berdokumentasi untuk skin baru.
+
+### Changed
+- Rambut belakang tak lagi sprite kaku: `springStep` (pegas dgn kecepatan) menggantikan
+  peredam orde-1 → melewati target lalu bergoyang; dirender sebagai `MeshPlane` (kisi 2×14)
+  dengan vertex digeser sebanding kuadrat jarak dari pivot → pangkal diam, ujung melengkung.
+  Dua pegas per potong (pangkal + ujung lembek); selisihnya = besar lengkungan.
+- Aksesoris kepala kini diayun **searah** (terseret berlawanan gerak kepala), bukan mirror.
+- Aksesoris jadi **jamak**: sayap/rantai/aksesoris kepala boleh berapa pun jumlahnya.
+- `check-skins.mjs` memvalidasi terhadap manifest yang dipakai skin, bukan membandingkan
+  ke skin lain (dulu melaporkan "avatar gagal" padahal jalan).
+
+### Fixed
+- Variant mata yang tak dimiliki skin dulu **menghilangkan mata** (wajah kosong); kini jatuh
+  balik ke mata dasar dan tracking tetap jalan.
+- Efek pupil membeku saat mata variant tampil lalu terbawa setelahnya (pupil normal ikut
+  berputar setelah `dizzy`); kini di-reset saat variant tampil.
+- Poros pupil dipindah ke pusat pupil — dulu di (0,0) kanvas, jadi membesar = terlempar ke pojok.
+- Tangan terlempar ke atas kepala setelah porosnya dipindah ke bahu (posisi ditulis absolut,
+  bukan relatif ke posisi diam).
+
+### Added (dari sesi sebelumnya)
 - **Interface renderer** (`app/src/renderer/`): `AvatarRenderer` (kontrak semantik — state, event,
   flash, talking, layout, update) + `PngRenderer` (implementasi rig PNG sekarang). Persiapan
   Live2D sebagai implementasi kedua di branch `live2d`.

@@ -52,6 +52,8 @@ export interface Roles {
   headbase?: string; // wajib ada (inti kepala)
   mouth?: string; // node mulut default; teksturnya di-swap saat ganti state
   bangs?: string; // poni (sway sendiri, lebih kaku dari rambut belakang)
+  handLeft?: string; // tangan kiri — ikut napas & animasi mengetik
+  handRight?: string;
 }
 
 export interface Manifest {
@@ -67,6 +69,8 @@ export interface Manifest {
     back_dynamic?: { note?: string; members: Record<string, DynamicMember> };
     cloth_dynamic?: { note?: string; members: Record<string, DynamicMember> };
     head_accessory_dynamic?: { note?: string; members: Record<string, DynamicMember> };
+    /** Tangan: `pivot` di titik bahu supaya rotasi kecil berporos di sana. */
+    hand_dynamic?: { note?: string; members: Record<string, DynamicMember> };
     static?: { note?: string; members: string[] };
   };
   eyes: {

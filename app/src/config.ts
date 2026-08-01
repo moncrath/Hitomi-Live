@@ -41,6 +41,20 @@ export const TUNING = {
   // Look-at mata: reach = fraksi ukuran avatar; kursor sejauh ~reach dari mata = deflect penuh.
   eyes: { smoothing: 0.0035, reach: 0.5 },
   breath: { speed: 1.6, amount: 0.012 },
+  // Tangan (1 layer per sisi, tanpa siku): geser vertikal saja. Amplitudo sengaja
+  // kecil — makin besar makin kelihatan bahwa lengannya kaku.
+  hands: {
+    breathAmp: 5, // px naik-turun mengikuti napas
+    breathSmoothing: 0.25, // lag terhadap dada (0 = ikut persis)
+    // Pose "malu-malu" saat ngoding: ditahan, bukan bergetar — getar berfrekuensi
+    // tetap terasa seperti robot (sudah dicoba & dibuang).
+    // rad. POSITIF = merapat ke dalam, NEGATIF = mengayun keluar (dicerminkan
+    // otomatis untuk tangan kanan). Nilai sekarang menyembunyikan tangan di balik
+    // badan saat ngoding — dipilih user setelah mencoba beberapa sudut.
+    shyRotation: -0.5,
+    shyLift: 7, // px terangkat sedikit
+    poseSmoothing: 0.02, // kecepatan masuk/keluar pose (kecil = gesit)
+  },
   // Sayap belakang bawah: flap idle (sine, mirror kiri-kanan) + condong ikut kepala.
   wings: { idleSpeed: 1.0, idleAmp: 0.05, reactGain: 0.5, smoothing: 0.25, dropY: 140 },
   // Aksesoris baju: pendulum halus (ga lebay).
