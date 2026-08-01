@@ -9,3 +9,17 @@ export async function listenTauriSignal(
   const { listen } = await import('@tauri-apps/api/event');
   await listen<{ kind: string; name: string }>('hitomi://signal', (e) => cb(e.payload));
 }
+
+/** Laporan pemasangan hook otomatis dari Rust (lihat `src-tauri/src/hook_setup.rs`). */
+export interface SetupReport {
+  ready: boolean;
+  changed: boolean;
+  node: boolean;
+  message: string;
+}
+
+/** Dengarkan hasil pemasangan hook saat start. */
+export async function listenTauriSetup(cb: (r: SetupReport) => void): Promise<void> {
+  const { listen } = await import('@tauri-apps/api/event');
+  await listen<SetupReport>('hitomi://setup', (e) => cb(e.payload));
+}

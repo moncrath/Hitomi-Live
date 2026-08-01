@@ -14,7 +14,7 @@ and pops a speech bubble with her last line. Powered entirely by **Claude Code h
 ![Tauri](https://img.shields.io/badge/Tauri-v2-24C8DB?style=for-the-badge&logo=tauri)
 ![pixi.js](https://img.shields.io/badge/pixi.js-v8-e91e63?style=for-the-badge)
 ![Persona](https://img.shields.io/badge/Persona-Yandere_💗-ff5fa2?style=for-the-badge)
-![Version](https://img.shields.io/badge/Release-v1.1.0-22c55e?style=for-the-badge)
+![Version](https://img.shields.io/badge/Release-v1.2.0-22c55e?style=for-the-badge)
 
 </div>
 
@@ -45,7 +45,7 @@ with any Claude Code session. Run one exe; it reacts in every project.
 | 😵 | **Error moods** | One error → dizzy; a losing streak → genuinely annoyed. |
 | 🧬 | **Data-driven rig** | Layer names, pivots, sway strength, mesh bend & offsets all live in the manifest. |
 | 🌊 | **Real hair physics** | Second-order springs + mesh deformation — hair bends and settles, it doesn't just rotate. |
-| 📦 | **Truly portable** | One self-contained exe + one global hook = reacts in **every** project, zero per-project setup. |
+| 📦 | **Truly portable** | One self-contained exe. It **installs its own Claude Code hook** on first run — no config editing. |
 
 ## 🎭 Expressions
 
@@ -78,24 +78,18 @@ The hook only **relays the event name** (strict validation, never executes anyth
 
 ## 🚀 Run it (portable)
 
-1. **Download [`Hitomi Live.exe`](Hitomi%20Live.exe)** straight from this repo — no build needed.
-   It's self-contained (frontend + art embedded): copy it anywhere and double-click.
-   Needs WebView2, which ships with Windows 11.
-2. **Register the hook once — globally** in `~/.claude/settings.json`, so it fires for every project:
-   - Copy `hooks/notify.mjs` somewhere stable, e.g. `~/.claude/hooks/hitomi-notify.mjs`.
-   - Add a `hooks` block (repeat for `SessionStart`, `UserPromptSubmit`, `PreToolUse`\*, `PostToolUse`\*, `Notification`, `Stop`):
-     ```json
-     {
-       "hooks": {
-         "Stop": [
-           { "hooks": [ { "type": "command",
-             "command": "node \"C:/Users/<you>/.claude/hooks/hitomi-notify.mjs\" Stop" } ] }
-         ]
-       }
-     }
-     ```
-     \* `PreToolUse` / `PostToolUse` also take `"matcher": "*"`. Requires **Node.js**.
-3. Launch the exe → open any project in Claude Code → she reacts. Close the exe → she's gone.
+**Prerequisites:** Windows with WebView2 (ships with Windows 11) and **[Node.js](https://nodejs.org)**
+— Claude Code runs the hook with it.
+
+1. **Download [`Hitomi Live.exe`](Hitomi%20Live.exe)** (or from
+   [Releases](https://github.com/moncrath/Hitomi-Live/releases)). Self-contained: copy it anywhere.
+2. **Double-click it.** On first launch Hitomi **installs her own hook**: she writes
+   `~/.claude/hooks/hitomi-notify.mjs` and registers the six events in `~/.claude/settings.json`.
+   The edit is non-destructive (your `permissions`, model and other hooks are left alone) and a
+   `settings.json.bak` is kept. She'll tell you in a speech bubble when it's done — or if Node is missing.
+3. **Open any project in Claude Code** → she reacts. Close the exe → she's gone.
+
+No per-project setup: one exe, and she reacts in *every* Claude Code session.
 
 > 💡 The Hitomi *persona* is separate: drop `CLAUDE.md` into a project for that. The avatar reacts either way.
 

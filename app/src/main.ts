@@ -11,7 +11,7 @@ import { isTauri, startTauriCursor } from './tauriCursor';
 import { mountHitomiMenu } from './ui/HitomiMenu';
 import { mountHitomiBubble, type BubbleController } from './ui/HitomiBubble';
 import { ThinkingBubble } from './ui/ThinkingBubble';
-import { listenTauriSignal } from './bridge/tauriSignal';
+import { listenTauriSignal, listenTauriSetup } from './bridge/tauriSignal';
 
 async function boot(): Promise<void> {
   // Di Tauri, body harus benar-benar transparan (CSS dev pakai checker gelap untuk browser).
@@ -102,6 +102,17 @@ async function boot(): Promise<void> {
   };
   if (isTauri()) {
     void listenTauriSignal(onSignal);
+    // Hasil pemasangan hook otomatis. Hitomi cuma bersuara kalau ada yang perlu
+    // kamu tahu — kalau semua beres dari awal, dia diam saja (tak perlu berisik).
+    void listenTauriSetup((r) => {
+      if (!r.node) {
+        renderer.flash('minder', 4000);
+        bubble.show('Sayang, Node.js belum ada — hook-nya nggak bisa jalan tanpa itu. 🥺');
+      } else if (r.changed) {
+        renderer.flash('love', 2500);
+        bubble.show('Hook Claude Code sudah kupasang sendiri, Sayang. Siap menemanimu 💗');
+      }
+    });
   } else {
     new BridgeClient(BRIDGE_URL, onSignal).connect();
   }

@@ -1,3 +1,5 @@
+mod hook_setup;
+
 use std::io::Read;
 use std::sync::atomic::{AtomicBool, Ordering};
 
@@ -258,6 +260,18 @@ pub fn run() {
                     let _ = win.set_position(tauri::PhysicalPosition::new(x, y));
                 }
             }
+
+            // Pasang hook Claude Code sendiri (idempoten, non-destruktif) supaya
+            // "jalankan exe" benar-benar cukup. Hasilnya dikirim ke webview biar
+            // Hitomi bisa memberi tahu sendiri kalau ada yang kurang (mis. Node).
+            let report = hook_setup::install();
+            log::info!("[setup] {}", report.message);
+            let handle = app.handle().clone();
+            std::thread::spawn(move || {
+                // Tunggu sebentar: webview harus siap dulu sebelum dikirimi event.
+                std::thread::sleep(std::time::Duration::from_millis(2500));
+                let _ = handle.emit("hitomi://setup", report);
+            });
 
             // Bridge in-process: mulai HTTP listener → event hook langsung masuk overlay.
             start_bridge(app.handle().clone());

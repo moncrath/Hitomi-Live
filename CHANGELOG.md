@@ -4,6 +4,25 @@ Semua perubahan penting proyek ini dicatat di sini.
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-08-02
+### Added
+- **Pemasang hook otomatis** (`src-tauri/src/hook_setup.rs`). Dulu ini satu-satunya langkah manual
+  dan satu-satunya alasan orang gagal memakai Hitomi. Sekarang exe memasangnya sendiri saat start:
+  - `notify.mjs` ke-bake dalam exe (`include_str!`) → ditulis ke `~/.claude/hooks/hitomi-notify.mjs`.
+  - Enam event didaftarkan di `~/.claude/settings.json`.
+  - **Non-destruktif**: hanya menyentuh entri miliknya sendiri; `permissions`, `model`, dan hook
+    milik tool lain dibiarkan utuh. Backup ke `settings.json.bak` sebelum perubahan pertama.
+  - **Idempoten**: dijalankan tiap start tapi hanya menulis bila memang beda (path dinormalkan ke
+    garis miring biasa supaya tak menulis ulang settings hanya karena beda gaya path).
+  - **Menyembuhkan diri**: entri lama yang menunjuk path berbeda diperbarui otomatis.
+  - **Gagal dengan tenang**: `settings.json` rusak → tak ditimpa sama sekali, cuma dilaporkan.
+  - Menghormati `CLAUDE_CONFIG_DIR` seperti Claude Code.
+- Hitomi **melaporkan sendiri** hasilnya lewat bubble: senang saat hook baru dipasang, minder kalau
+  Node.js tak terdeteksi. Diam saja kalau semuanya memang sudah beres.
+
+### Changed
+- README: langkah pakai tinggal unduh → klik dua kali → buka project. Blok JSON manual dihapus.
+
 ## [1.1.0] - 2026-08-02
 ### Added
 - **Skin orisinal Hitomi** menggantikan Roccia (yang dihapus): maid gothic, telinga kelinci,
