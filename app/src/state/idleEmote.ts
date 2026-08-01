@@ -1,4 +1,4 @@
-import type { StateController } from './StateController';
+import type { AvatarRenderer } from '../renderer/AvatarRenderer';
 
 /**
  * Saat idle, sesekali Hitomi flash ekspresi lucu bentar lalu balik normal.
@@ -13,7 +13,7 @@ export class IdleEmote {
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
-    private readonly state: StateController,
+    private readonly renderer: AvatarRenderer,
     private readonly canEmote: () => boolean,
   ) {}
 
@@ -34,7 +34,7 @@ export class IdleEmote {
   private fire(): void {
     if (this.canEmote()) {
       const name = EMOTES[Math.floor(Math.random() * EMOTES.length)];
-      this.state.flash(name, HOLD);
+      this.renderer.flash(name, HOLD);
     }
     this.schedule();
   }

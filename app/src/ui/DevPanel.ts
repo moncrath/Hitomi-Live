@@ -1,9 +1,9 @@
 import type { Manifest } from '../types';
-import type { StateController } from '../state/StateController';
+import type { AvatarRenderer } from '../renderer/AvatarRenderer';
 
 /** Panel dev overlay: tombol untuk tiap state & event (Fase 1a debugging). */
 export class DevPanel {
-  constructor(state: StateController, m: Manifest, onBubble?: () => void) {
+  constructor(renderer: AvatarRenderer, m: Manifest, onBubble?: () => void) {
     const root = document.createElement('div');
     root.style.cssText = [
       'position:fixed',
@@ -24,7 +24,7 @@ export class DevPanel {
     const states = document.createElement('div');
     states.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px';
     for (const name of Object.keys(m.states)) {
-      states.appendChild(this.btn(name, () => state.apply(name)));
+      states.appendChild(this.btn(name, () => renderer.setState(name)));
     }
     root.appendChild(states);
 
@@ -33,7 +33,7 @@ export class DevPanel {
     events.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px';
     for (const name of Object.keys(m.events)) {
       if (name === 'note') continue;
-      events.appendChild(this.btn(name, () => state.event(name), true));
+      events.appendChild(this.btn(name, () => renderer.event(name), true));
     }
     root.appendChild(events);
 

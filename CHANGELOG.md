@@ -3,6 +3,11 @@
 Semua perubahan penting proyek ini dicatat di sini.
 
 ## [Unreleased]
+### Added
+- **Interface renderer** (`app/src/renderer/`): `AvatarRenderer` (kontrak semantik — state, event,
+  flash, talking, layout, update) + `PngRenderer` (implementasi rig PNG sekarang). Persiapan
+  Live2D sebagai implementasi kedua di branch `live2d`.
+
 ### Changed
 - **Polish bubble teks:** ekor bubble (segitiga ber-outline pink) menunjuk ke arah kepala avatar,
   ikut sisi kiri/kanan; animasi muncul pakai pop overshoot dengan titik tumpu di pangkal ekor.
