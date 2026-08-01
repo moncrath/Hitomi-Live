@@ -35,3 +35,8 @@ Thumbs.db
 
 # Artefak Playwright MCP (screenshot/log uji)
 .playwright-mcp/
+
+# Model suara RVC: besar (ratusan MB) + aset pihak ketiga -> jangan pernah di-commit/di-upload.
+tts/models/
+*.pth
+*.index
