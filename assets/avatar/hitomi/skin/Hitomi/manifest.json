@@ -31,7 +31,7 @@
       "note": "Rambut = mesh (sway + melengkung). Pivot = titik NEMPEL di kepala, yaitu tepi DALAM pita-atas tiap potong — bukan tengah bbox (kalau dari tengah, twin-tail terlihat lepas dari kepala). `gain` mengecilkan gerak per potong: rambut belakang Hitomi pendek jadi hampir tak bergerak; rambut samping ada di dalam grup kepala sehingga geraknya dihitung relatif.",
       "members": {
         "2_back-hair":              { "pivot": [550, 332], "gain": 0.10, "bend": 0.35 },
-        "3_lefthair_back":          { "pivot": [332, 288], "gain": 0.25, "bend": 0.6, "offset": [22, 0] },
+        "3_lefthair_back":          { "pivot": [332, 288], "gain": 0.25, "bend": 0.6, "offset": [19, 0] },
         "4_righthair_back":         { "pivot": [730, 288], "gain": 0.25, "bend": 0.6 },
         "11_side_small_hair-left":  { "pivot": [305, 500], "gain": 0.9,  "bend": 1.1 },
         "11_side_small_hair-right": { "pivot": [771, 500], "gain": 0.9,  "bend": 1.1 },
