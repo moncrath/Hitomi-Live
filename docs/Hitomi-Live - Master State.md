@@ -58,6 +58,7 @@ Manifest/rig dipakai bersama semua skin; daftar skin di `skins.json`.
 ### ✅ Done — Fase 2: Bubble Teks
 - Kalimat terakhir Hitomi dari transkrip `.jsonl` → bubble overlay (hook Stop → `/bubble` → `hitomi://bubble`).
 - Animasi "ngomong" (mata `closed_happy` + mulut `9aa`/`9ab`), idle emote, mood error (dizzy/marah), bubble "thinking" berputar saat mikir/ngoding.
+- Styling: ekor bubble menunjuk ke kepala (ikut sisi kiri/kanan) + animasi muncul pop overshoot; bisa diuji di browser dev lewat tombol DevPanel.
 
 ### ✅ Done — Ganti Skin
 - Menu → **Skin**: pilih set tekstur karakter (`skin/<id>/`, data-driven `skins.json`). Skin aktif: **Roccia**. Menyiapkan skin orisinal Hitomi tanpa ubah kode.
@@ -99,7 +100,8 @@ Manifest/rig dipakai bersama semua skin; daftar skin di `skins.json`.
 5. ✅ Hook `notify.mjs` terdaftar di `settings.json` + notif kepanggil di Antigravity (Risiko #1 CLEAR).
 6. ✅ **Wrap Tauri** — overlay frameless/transparan/always-on-top + tracking global + tray + drag + menu in-app (ukuran 1–10, sisi bubble). **Fase 1 tuntas.**
 7. ✅ **Fase 2 — bubble teks:** kalimat terakhir Hitomi dari transkrip `.jsonl` → bubble overlay (sisi ikut toggle). **Selesai.**
-8. **Polish/next:** styling bubble (tail/animasi) · ekspresi tambahan · `tauri build` jadi installer · uji end-to-end di sesi coding Antigravity asli. ← berikutnya
+8. ✅ **Polish bubble** — ekor + pop animasi, plus tombol dev di DevPanel biar bisa diuji di browser.
+9. **Polish/next:** ekspresi tambahan · `tauri build` jadi installer · uji end-to-end di sesi coding Antigravity asli. ← berikutnya
 
 ## References
 - AIRI — https://github.com/moeru-ai/airi (inspirasi avatar; paket `stage-ui-live2d`, `stage-ui-three`)

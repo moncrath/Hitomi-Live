@@ -3,7 +3,7 @@ import type { StateController } from '../state/StateController';
 
 /** Panel dev overlay: tombol untuk tiap state & event (Fase 1a debugging). */
 export class DevPanel {
-  constructor(state: StateController, m: Manifest) {
+  constructor(state: StateController, m: Manifest, onBubble?: () => void) {
     const root = document.createElement('div');
     root.style.cssText = [
       'position:fixed',
@@ -36,6 +36,11 @@ export class DevPanel {
       events.appendChild(this.btn(name, () => state.event(name), true));
     }
     root.appendChild(events);
+
+    if (onBubble) {
+      root.appendChild(this.section('Bubble'));
+      root.appendChild(this.btn('bubble teks', onBubble, true));
+    }
 
     const hint = document.createElement('div');
     hint.textContent = 'Gerakkan kursor: eye-track + head-tilt + hair-sway.';

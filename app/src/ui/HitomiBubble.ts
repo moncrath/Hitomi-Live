@@ -3,9 +3,12 @@
  * (dikirim hook `Stop` → `/bubble` → event Tauri `hitomi://bubble`). Auto-hilang,
  * posisi ikut preferensi sisi (`hitomi.bubbleSide`, sama dgn menu). Font Vividly.
  */
+import { isTauri } from '../tauriCursor';
+
 const PURPLE = '#3e2271';
 const PINK = '#fab3df';
 const FONT = "'Vividly', system-ui, sans-serif";
+const EASE_POP = 'cubic-bezier(.2,1.5,.4,1)'; // sedikit overshoot saat muncul
 
 interface BubbleHooks {
   onShow?: () => void; // bubble muncul (mulai animasi "ngomong")
@@ -13,6 +16,7 @@ interface BubbleHooks {
 }
 
 export interface BubbleController {
+  show: (text: string) => void; // dipakai listener Tauri & tombol dev
   hide: () => void;
 }
 
@@ -34,11 +38,28 @@ export async function mountHitomiBubble(hooks: BubbleHooks = {}): Promise<Bubble
     pointerEvents: 'none',
     zIndex: '11',
     opacity: '0',
-    transform: 'translateY(-6px) scale(.96)',
-    transition: 'opacity .22s ease, transform .22s ease',
+    transform: 'translateY(-6px) scale(.94)',
+    // Masuk: pop kecil (overshoot). Keluar: ease biasa — di-set ulang di hide().
+    transition: `opacity .2s ease, transform .26s ${EASE_POP}`,
     wordBreak: 'break-word',
     whiteSpace: 'pre-wrap',
   });
+
+  // Ekor bubble: kotak diputar 45° dgn 2 sisi ber-border → segitiga ber-outline
+  // yang menunjuk ke bawah (ke arah kepala avatar). Border sisi dalam ketutup badan bubble.
+  const tail = document.createElement('div');
+  Object.assign(tail.style, {
+    position: 'absolute',
+    bottom: '-8px',
+    width: '14px',
+    height: '14px',
+    background: PURPLE,
+    borderRight: `2px solid ${PINK}`,
+    borderBottom: `2px solid ${PINK}`,
+    borderBottomRightRadius: '3px',
+    transform: 'rotate(45deg)',
+  });
+  bubble.appendChild(tail);
   document.body.appendChild(bubble);
 
   let hideTimer: ReturnType<typeof setTimeout> | null = null;
@@ -51,8 +72,9 @@ export async function mountHitomiBubble(hooks: BubbleHooks = {}): Promise<Bubble
       clearTimeout(hideTimer);
       hideTimer = null;
     }
+    bubble.style.transition = 'opacity .18s ease, transform .18s ease';
     bubble.style.opacity = '0';
-    bubble.style.transform = 'translateY(-6px) scale(.96)';
+    bubble.style.transform = 'translateY(-6px) scale(.94)';
     hooks.onHide?.();
   };
 
@@ -61,8 +83,15 @@ export async function mountHitomiBubble(hooks: BubbleHooks = {}): Promise<Bubble
     bubble.style.left = side === 'left' ? '14px' : '';
     bubble.style.right = side === 'left' ? '' : '14px';
     bubble.style.textAlign = side === 'left' ? 'left' : 'right';
+    // Ekor & titik tumpu skala di sisi yang sama → pop-nya terasa "keluar dari" avatar.
+    tail.style.left = side === 'left' ? '22px' : '';
+    tail.style.right = side === 'left' ? '' : '22px';
+    bubble.style.transformOrigin = side === 'left' ? '22px 100%' : 'calc(100% - 22px) 100%';
 
+    // textContent (bukan innerHTML) → teks transkrip aman; ekor di-append ulang.
     bubble.textContent = text;
+    bubble.appendChild(tail);
+    bubble.style.transition = `opacity .2s ease, transform .26s ${EASE_POP}`;
     bubble.style.opacity = '1';
     bubble.style.transform = 'translateY(0) scale(1)';
     visible = true;
@@ -73,8 +102,11 @@ export async function mountHitomiBubble(hooks: BubbleHooks = {}): Promise<Bubble
     hideTimer = setTimeout(hide, dur);
   };
 
-  const { listen } = await import('@tauri-apps/api/event');
-  await listen<{ text: string }>('hitomi://bubble', (e) => show(e.payload.text));
+  // Sumber teks cuma ada di overlay Tauri; di browser (dev) bubble dipicu DevPanel.
+  if (isTauri()) {
+    const { listen } = await import('@tauri-apps/api/event');
+    await listen<{ text: string }>('hitomi://bubble', (e) => show(e.payload.text));
+  }
 
-  return { hide };
+  return { show, hide };
 }

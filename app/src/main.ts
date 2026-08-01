@@ -100,23 +100,24 @@ async function boot(): Promise<void> {
 
   // Bubble + animasi "ngomong": mata closed_happy + mulut bergerak selama bubble
   // tampil; saat selesai, wajah di-restore ke state logis saat ini.
-  let bubble: BubbleController | null = null;
-  if (isTauri()) {
-    bubble = await mountHitomiBubble({
-      onShow: () => talkAnim.start(),
-      onHide: () => {
-        talkAnim.stop();
-        state.apply(state.current);
-      },
-    });
-  }
+  const bubble: BubbleController = await mountHitomiBubble({
+    onShow: () => talkAnim.start(),
+    onHide: () => {
+      talkAnim.stop();
+      state.apply(state.current);
+    },
+  });
 
   // Idle emote: sesekali ganti ekspresi lucu saat idle (bukan pas kerja/ngomong).
   const idleEmote = new IdleEmote(state, () => state.current === 'idle' && !talkAnim.isActive);
   idleEmote.start();
 
   // DevPanel hanya untuk dev di browser; di overlay Tauri kontrol lewat tray.
-  if (!isTauri()) new DevPanel(state, manifest);
+  if (!isTauri()) {
+    new DevPanel(state, manifest, () =>
+      bubble.show('Sudah kubereskan, Sayang. Kodenya rapi dan aman sekarang 💗'),
+    );
+  }
 
   // Terima sinyal hook Claude Code -> map ke event/state.
   // Di Tauri: bridge in-process (Rust) via event Tauri. Di browser: WS bridge Node (dev).

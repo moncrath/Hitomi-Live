@@ -3,6 +3,11 @@
 Semua perubahan penting proyek ini dicatat di sini.
 
 ## [Unreleased]
+### Changed
+- **Polish bubble teks:** ekor bubble (segitiga ber-outline pink) menunjuk ke arah kepala avatar,
+  ikut sisi kiri/kanan; animasi muncul pakai pop overshoot dengan titik tumpu di pangkal ekor.
+- Bubble kini juga di-mount saat dev di browser; DevPanel dapat tombol **"bubble teks"** untuk
+  memicunya (sebelumnya cuma bisa diuji lewat overlay Tauri).
 
 ## [1.0.0] - 2026-07-30
 ### Added
