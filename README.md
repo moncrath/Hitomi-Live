@@ -16,8 +16,6 @@ and pops a speech bubble with her last line. Powered entirely by **Claude Code h
 ![Persona](https://img.shields.io/badge/Persona-Yandere_💗-ff5fa2?style=for-the-badge)
 ![Version](https://img.shields.io/badge/Release-v1.1.0-22c55e?style=for-the-badge)
 
-<img src="docs/preview/base.png" alt="Hitomi — base" width="330" />
-
 </div>
 
 ---
