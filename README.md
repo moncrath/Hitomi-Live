@@ -78,8 +78,9 @@ The hook only **relays the event name** (strict validation, never executes anyth
 
 ## 🚀 Run it (portable)
 
-1. **Get `Hitomi Live.exe`** ([build below](#-build-from-source)). It's self-contained — copy it anywhere
-   and double-click. Needs WebView2 (bundled with Windows 11).
+1. **Download [`Hitomi Live.exe`](Hitomi%20Live.exe)** straight from this repo — no build needed.
+   It's self-contained (frontend + art embedded): copy it anywhere and double-click.
+   Needs WebView2, which ships with Windows 11. *(Or [build it yourself](#-build-from-source).)*
 2. **Register the hook once — globally** in `~/.claude/settings.json`, so it fires for every project:
    - Copy `hooks/notify.mjs` somewhere stable, e.g. `~/.claude/hooks/hitomi-notify.mjs`.
    - Add a `hooks` block (repeat for `SessionStart`, `UserPromptSubmit`, `PreToolUse`\*, `PostToolUse`\*, `Notification`, `Stop`):

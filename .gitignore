@@ -10,8 +10,9 @@ out/
 # Tauri / Rust
 src-tauri/target/
 
-# Exe portable (salinan di root biar gampang dicari; jangan di-commit)
-*.exe
+# Catatan: `Hitomi Live.exe` di root SENGAJA di-commit supaya bisa diunduh langsung
+# dari GitHub tanpa build. Konsekuensinya tiap rebuild menambah ~15MB permanen ke
+# history repo (tak bisa dihapus tanpa menulis ulang history).
 
 # Env & secrets
 .env
