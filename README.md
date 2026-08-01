@@ -80,7 +80,7 @@ The hook only **relays the event name** (strict validation, never executes anyth
 
 1. **Download [`Hitomi Live.exe`](Hitomi%20Live.exe)** straight from this repo — no build needed.
    It's self-contained (frontend + art embedded): copy it anywhere and double-click.
-   Needs WebView2, which ships with Windows 11. *(Or [build it yourself](#-build-from-source).)*
+   Needs WebView2, which ships with Windows 11.
 2. **Register the hook once — globally** in `~/.claude/settings.json`, so it fires for every project:
    - Copy `hooks/notify.mjs` somewhere stable, e.g. `~/.claude/hooks/hitomi-notify.mjs`.
    - Add a `hooks` block (repeat for `SessionStart`, `UserPromptSubmit`, `PreToolUse`\*, `PostToolUse`\*, `Notification`, `Stop`):
@@ -98,37 +98,6 @@ The hook only **relays the event name** (strict validation, never executes anyth
 3. Launch the exe → open any project in Claude Code → she reacts. Close the exe → she's gone.
 
 > 💡 The Hitomi *persona* is separate: drop `CLAUDE.md` into a project for that. The avatar reacts either way.
-
-## 🛠️ Build from source
-
-```bash
-cd app
-npm install
-npx tauri dev                 # dev window + hot-reload
-npx tauri build --no-bundle   # → src-tauri/target/release/app.exe (portable)
-```
-
-Change the icon: drop a square PNG and run `npx tauri icon <file.png>`.
-
-## 🎨 Character & rig
-
-Hitomi is the **only** character — there is no skin picker. Her textures and rig live together:
-
-```
-assets/avatar/hitomi/
-├─ manifest.json         # documented TEMPLATE for a new character
-└─ skin/Hitomi/
-   ├─ *.png              # layers, one shared canvas (1080x1440)
-   └─ manifest.json      # the rig actually used: z-order, pivots, states
-```
-
-The rig is **data-driven**: layer names are free (map them via `roles`), a layer's number decides its
-group (**>= 8 follows the head**), and every moving layer accepts `pivot`, `gain`, `bend`, `deform`
-and `offset`. So retuning how hair swings, how far a chain bends, or nudging a ponytail into place is a
-number in the manifest — not a code change.
-
-Verify completeness with `node scripts/check-skins.mjs` (**core** layers required; optional ones may be
-missing and are skipped). Assets are embedded at build time, so **rebuild the exe** after changing art.
 
 ## 📂 Repo contents
 
