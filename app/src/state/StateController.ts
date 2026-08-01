@@ -35,22 +35,28 @@ export class StateController {
 
     this.applyMouth();
 
-    if (st.eyes === 'base') {
+    // Variant yang diminta tapi tak dimiliki skin -> JANGAN sembunyikan mata dasar,
+    // nanti wajahnya jadi kosong. Lebih baik tetap mata biasa (tracking tetap hidup).
+    const variantKey = st.eyes === 'base' ? undefined : this.m.eyes.variants[st.eyes];
+    const variantTex = variantKey ? rig.textures.get(variantKey) : undefined;
+    if (variantKey && !variantTex) {
+      console.warn(`[state ${name}] variant mata "${st.eyes}" tak ada di skin ini — pakai mata dasar.`);
+    }
+
+    if (variantTex) {
+      this.baseMode = false;
+      rig.eyeVariant.texture = variantTex;
+      rig.eyeVariant.visible = true;
+      rig.eyeBg.visible = rig.pupilL.visible = rig.pupilR.visible = rig.eyeFrame.visible = false;
+      rig.eyeBlink.visible = false;
+    } else {
       this.baseMode = true;
       rig.eyeVariant.visible = false;
       rig.eyeBg.visible = rig.pupilL.visible = rig.pupilR.visible = rig.eyeFrame.visible = true;
-    } else {
-      this.baseMode = false;
-      const vk = this.m.eyes.variants[st.eyes];
-      if (vk) {
-        rig.eyeVariant.texture = rig.textures.get(vk)!;
-        rig.eyeVariant.visible = true;
-      }
-      rig.eyeBg.visible = rig.pupilL.visible = rig.pupilR.visible = rig.eyeFrame.visible = false;
-      rig.eyeBlink.visible = false;
     }
 
-    this.trackingWanted = st.tracking;
+    // Tracking cuma masuk akal saat mata dasar tampil.
+    this.trackingWanted = st.tracking && this.baseMode;
   }
 
   /** Set tekstur mulut dari state saat ini (acak bila `mouths[]`). Dipisah agar

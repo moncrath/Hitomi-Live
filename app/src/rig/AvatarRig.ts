@@ -1,42 +1,49 @@
 import { Assets, Container, Sprite, Texture } from 'pixi.js';
 import { CANVAS, TUNING, layerUrl, getSkin } from '../config';
-import type { Manifest, Vec2 } from '../types';
+import type { DynamicMember, Manifest, Roles, Vec2 } from '../types';
 import { makeHairMesh, type HairMesh } from './hairMesh';
 
-/** Layer inti yang WAJIB ada di tiap skin (rig tak berarti tanpa ini). Sisanya
- *  (sayap, tangan, cloth, side-hair, bangs, alis, aksesoris kepala, variant mata,
- *  mulut ekstra) opsional → hilang = di-skip, bukan crash. */
-const REQUIRED_LAYERS = [
-  '7_body',
-  '8_headbase',
-  '9b_mouth_closed',
-  '10_eyes_background',
-  '10_eyes_pupil_left',
-  '10_eyes_pupil_right',
-  '10_eyes_frame',
-];
+/** Nama layer bawaan untuk peran khusus; per-skin bisa ditimpa lewat `manifest.roles`. */
+const DEFAULT_ROLES: Required<Roles> = {
+  body: '7_body',
+  headbase: '8_headbase',
+  mouth: '9b_mouth_closed',
+  bangs: '12_bangs',
+};
 
-interface HairPiece {
-  /** Mesh (bukan sprite): selain diputar, bisa dilengkungkan. */
+/**
+ * Layer di atas nomor ini ikut GRUP KEPALA (tilt bersama kepala).
+ * Konvensi penomoran aset: 1–7 badan & belakang, 8 ke atas kepala.
+ * Dipakai sebagai aturan tunggal supaya skin bebas menamai layernya sendiri —
+ * hanya nomor depannya yang menentukan tempat.
+ */
+const HEAD_FROM = 8;
+
+/** Layer bergerak yang dirender sebagai mesh (bisa diputar DAN dilengkungkan). */
+export interface DeformPiece {
   hair: HairMesh;
   pivot: Vec2;
+  gain: number;
+  bend: number;
+  /**
+   * Berada di dalam grup kepala. Kalau ya, layer ini SUDAH ikut rotasi kepala,
+   * jadi sway-nya harus RELATIF (selisih dari kepala) — kalau tidak, gerakannya
+   * terhitung dua kali dan rambut samping akan terlihat lepas.
+   */
+  inHead: boolean;
 }
 
 /**
- * Menyusun 33 layer PNG jadi graf pixi ber-grup sesuai manifest:
+ * Menyusun layer PNG jadi graf pixi mengikuti `z_order_idle` manifest:
  *  root
- *   ├ 1 back-accessories                (static)
- *   ├ backHair [2,3,4]                  (sway, di belakang badan)
- *   ├ 5 lefthand, 6 righthand           (static)
- *   ├ 7 body                            (napas)
- *   └ head (pivot leher 534,790)        (tilt 2.5D)
- *        ├ 8 headbase
- *        ├ mouth (swap tekstur)
- *        ├ eyes [bg, pupilL, pupilR, frame, variant, blink]
- *        ├ 11 side-hair, 12 bangs (sway), 13/14 brows, 15 head-acc
+ *   ├ backWings   (grup back_dynamic — flap)
+ *   ├ backHair    (grup hair_dynamic non-poni — mesh, sway + lengkung)
+ *   ├ layer badan (tangan, badan, aksesoris baju)
+ *   └ head        (poros leher; semua layer bernomor >= 8)
+ *        └ eyes   (base + variant + blink)
  *
- * Semua layer 1080×1440 -> ditaruh anchor 0 di (0,0) = registrasi otomatis.
- * Sprite yang berotasi (rambut) pakai pivot==position agar diam saat rotasi 0.
+ * Semua layer sekanvas (mis. 1080×1440) -> anchor 0 di (0,0) = registrasi otomatis.
+ * Layer yang tak ada di skin di-SKIP (bukan crash); hanya peran inti yang wajib.
  */
 export class AvatarRig {
   readonly root = new Container();
@@ -48,8 +55,9 @@ export class AvatarRig {
   readonly textures = new Map<string, Texture>();
 
   manifest!: Manifest;
+  private roles: Required<Roles> = DEFAULT_ROLES;
 
-  // Referensi cepat untuk animasi.
+  // Referensi untuk animasi.
   body!: Sprite;
   mouth!: Sprite;
   eyeBg!: Sprite;
@@ -59,25 +67,20 @@ export class AvatarRig {
   eyeVariant!: Sprite;
   eyeBlink!: Sprite;
   bangs: Sprite | null = null;
-  hairPieces: HairPiece[] = [];
+  hairPieces: DeformPiece[] = [];
+  /** Rantai/kain yang ikut melengkung (opt-in `deform: true` di manifest). */
+  clothPieces: DeformPiece[] = [];
 
-  // Aksesoris bergerak (opsional — bisa null bila skin tak punya).
-  wingLeft: Sprite | null = null;
-  wingRight: Sprite | null = null;
-  cloth: Sprite | null = null;
-  headAccessory: Sprite | null = null; // 15a plume (sway trailing)
+  // Aksesoris bergerak. Jumlahnya ikut manifest — skin boleh punya 0, 1, atau banyak
+  // (mis. dua telinga kelinci, dua rantai) tanpa ubah kode.
+  wings: Sprite[] = [];
+  cloths: Sprite[] = [];
+  headAccessories: Sprite[] = [];
 
   private tex(key: string): Texture {
     const t = this.textures.get(key);
     if (!t) throw new Error(`Tekstur belum dimuat: ${key}`);
     return t;
-  }
-
-  /** Sprite dari layer WAJIB (throw bila hilang — sudah divalidasi di build). */
-  private make(key: string): Sprite {
-    const s = new Sprite(this.tex(key));
-    s.label = key;
-    return s;
   }
 
   /** Sprite dari layer OPSIONAL: null bila tekstur tak dimuat (skin tak punya). */
@@ -96,17 +99,159 @@ export class AvatarRig {
     sprite.position.set(pivot[0], pivot[1]);
   }
 
+  /** Nomor urut di awal nama layer ("12a_bangs" -> 12). Tanpa nomor dianggap badan. */
+  private layerNumber(key: string): number {
+    const m = /^(\d+)/.exec(key);
+    return m ? Number(m[1]) : 0;
+  }
+
   async build(manifest: Manifest): Promise<void> {
     this.manifest = manifest;
+    this.roles = { ...DEFAULT_ROLES, ...manifest.roles };
 
-    // Kumpulkan semua key unik yang mungkin dipakai (idle + variant mata + mulut + blink).
+    await this.loadTextures(manifest);
+    this.assertCore();
+
+    const g = manifest.groups;
+    const hairPivots = g.hair_dynamic?.members ?? {};
+    const wingPivots = g.back_dynamic?.members ?? {};
+    const clothPivots = g.cloth_dynamic?.members ?? {};
+    const headAccPivots = g.head_accessory_dynamic?.members ?? {};
+    const eyeBaseKeys = new Set(manifest.eyes.base);
+
+    // Kontainer dipasang ke root SAAT PERTAMA dibutuhkan, sambil menelusuri z_order
+    // dari bawah ke atas -> urutan tumpuknya otomatis benar tanpa daftar terpisah.
+    let wingsAdded = false;
+    let backHairAdded = false;
+    let headAdded = false;
+    let eyesAdded = false;
+
+    for (const key of manifest.z_order_idle) {
+      if (!this.textures.has(key)) continue; // layer opsional yang tak dimiliki skin ini
+      const inHead = this.layerNumber(key) >= HEAD_FROM;
+
+      // --- rambut: mesh (bisa melengkung). Poni dikecualikan — dia lebar & menempel
+      //     dahi, jadi cukup diputar seperti sprite biasa. ---
+      const hairDef = hairPivots[key];
+      if (hairDef && key !== this.roles.bangs) {
+        if (inHead && !headAdded) {
+          this.addHead(manifest);
+          headAdded = true;
+        }
+        const piece = this.makeDeformPiece(key, hairDef, inHead);
+        this.hairPieces.push(piece);
+        if (inHead) {
+          this.head.addChild(piece.hair.mesh);
+        } else {
+          this.backHair.addChild(piece.hair.mesh);
+          if (!backHairAdded) {
+            this.backHair.y = TUNING.dropY; // ikut turun bareng kepala
+            this.root.addChild(this.backHair);
+            backHairAdded = true;
+          }
+        }
+        continue;
+      }
+
+      // --- kain/rantai yang minta melengkung (mis. rantai panjang) ---
+      const clothDef = clothPivots[key];
+      if (clothDef?.deform) {
+        const piece = this.makeDeformPiece(key, clothDef, inHead);
+        this.clothPieces.push(piece);
+        (inHead ? this.head : this.root).addChild(piece.hair.mesh);
+        continue;
+      }
+
+      const sprite = this.tryMake(key);
+      if (!sprite) continue;
+
+      // --- sayap / panel belakang ---
+      if (wingPivots[key]) {
+        this.setPivot(sprite, wingPivots[key].pivot);
+        this.wings.push(sprite);
+        this.backWings.addChild(sprite);
+        if (!wingsAdded) {
+          this.backWings.y = TUNING.wings.dropY;
+          this.root.addChild(this.backWings);
+          wingsAdded = true;
+        }
+        continue;
+      }
+
+      // --- aksesoris baju (pendulum) ---
+      if (clothPivots[key]) {
+        this.setPivot(sprite, clothPivots[key].pivot);
+        this.cloths.push(sprite);
+        this.root.addChild(sprite);
+        continue;
+      }
+
+      if (inHead && !headAdded) {
+        this.addHead(manifest);
+        headAdded = true;
+      }
+      const parent = inHead ? this.head : this.root;
+
+      // --- aksesoris kepala yang bergoyang (trailing di dalam head) ---
+      if (headAccPivots[key]) {
+        this.setPivot(sprite, headAccPivots[key].pivot);
+        this.headAccessories.push(sprite);
+        parent.addChild(sprite);
+        continue;
+      }
+
+      // --- mata: dikumpulkan dalam satu kontainer supaya variant/blink menumpuk pas ---
+      if (eyeBaseKeys.has(key)) {
+        if (!eyesAdded) {
+          parent.addChild(this.eyes);
+          eyesAdded = true;
+        }
+        this.eyes.addChild(sprite);
+        continue;
+      }
+
+      // --- peran khusus + layer biasa ---
+      if (key === this.roles.body) {
+        this.body = sprite;
+        // Napas: skala vertikal halus dari dasar badan -> pivot bawah-tengah.
+        sprite.pivot.set(CANVAS.width / 2, CANVAS.height);
+        sprite.position.set(CANVAS.width / 2, CANVAS.height);
+      } else if (key === this.roles.mouth) {
+        this.mouth = sprite;
+      } else if (key === this.roles.bangs) {
+        this.bangs = sprite;
+        this.setPivot(sprite, hairPivots[key]?.pivot);
+      }
+      parent.addChild(sprite);
+    }
+
+    this.wireEyes();
+    this.root.pivot.set(CANVAS.width / 2, CANVAS.height / 2);
+  }
+
+  /** Pasang kontainer kepala ke root, poros di leher. */
+  private addHead(manifest: Manifest): void {
+    const hpv = manifest.groups.head_group.pivot;
+    this.head.pivot.set(hpv[0], hpv[1]);
+    this.head.position.set(hpv[0], hpv[1]);
+    this.root.addChild(this.head);
+  }
+
+  /** Bikin layer mesh yang bisa diputar & dilengkungkan, lengkap dgn pengali per-layer. */
+  private makeDeformPiece(key: string, def: DynamicMember, inHead: boolean): DeformPiece {
+    const hair = makeHairMesh(this.tex(key), def.pivot);
+    hair.mesh.label = key;
+    return { hair, pivot: def.pivot, gain: def.gain ?? 1, bend: def.bend ?? 1, inHead };
+  }
+
+  /** Muat semua tekstur yang mungkin dipakai; yang 404 di-skip (bukan gagal-total). */
+  private async loadTextures(manifest: Manifest): Promise<void> {
     const keys = new Set<string>(manifest.z_order_idle);
     manifest.eyes.base.forEach((k) => keys.add(k));
     Object.values(manifest.eyes.variants).forEach((k) => keys.add(k));
     Object.values(manifest.mouths).forEach((k) => keys.add(k));
     if (manifest.blink?.overlay) keys.add(manifest.blink.overlay);
 
-    // Muat TOLERAN: layer yang 404 di-skip (bukan gagal-total seperti loadBundle).
     const missing: string[] = [];
     await Promise.all(
       [...keys].map(async (k) => {
@@ -120,114 +265,30 @@ export class AvatarRig {
     if (missing.length) {
       console.warn(`[skin ${getSkin()}] ${missing.length} layer opsional tak ada, di-skip:`, missing);
     }
-    // Layer inti wajib ada — kalau tidak, laporkan jelas (bukan blank misterius).
-    const coreMissing = REQUIRED_LAYERS.filter((k) => !this.textures.has(k));
-    if (coreMissing.length) {
-      throw new Error(`Skin "${getSkin()}" tak lengkap — layer inti hilang: ${coreMissing.join(', ')}`);
+  }
+
+  /** Peran inti wajib ada — kalau tidak, laporkan jelas (bukan blank misterius). */
+  private assertCore(): void {
+    const core = [this.roles.body, this.roles.headbase, this.roles.mouth, ...this.manifest.eyes.base];
+    const gone = core.filter((k) => !this.textures.has(k));
+    if (gone.length) {
+      throw new Error(`Skin "${getSkin()}" tak lengkap — layer inti hilang: ${gone.join(', ')}`);
     }
+  }
 
-    const back = manifest.groups.back_dynamic?.members;
-    const hair = manifest.groups.hair_dynamic?.members;
+  /** Pasang referensi mata + node variant/blink di atas tumpukan mata. */
+  private wireEyes(): void {
+    const [bg, pupilL, pupilR, frame] = this.manifest.eyes.base;
+    this.eyeBg = this.eyes.getChildByLabel(bg) as Sprite;
+    this.pupilL = this.eyes.getChildByLabel(pupilL) as Sprite;
+    this.pupilR = this.eyes.getChildByLabel(pupilR) as Sprite;
+    this.eyeFrame = this.eyes.getChildByLabel(frame) as Sprite;
 
-    // --- lapisan belakang: sayap kiri/kanan (flap), opsional ---
-    this.wingLeft = this.tryMake('1a_back-accessories_left');
-    this.wingRight = this.tryMake('1b_back-accessories_right');
-    if (this.wingLeft) this.setPivot(this.wingLeft, back?.['1a_back-accessories_left']?.pivot);
-    if (this.wingRight) this.setPivot(this.wingRight, back?.['1b_back-accessories_right']?.pivot);
-    this.backWings.addChild(...([this.wingLeft, this.wingRight].filter(Boolean) as Sprite[]));
-    this.backWings.y = TUNING.wings.dropY; // turunkan sayap sedikit
-
-    // --- rambut belakang (opsional per-piece) ---
-    // Yang punya pivot dijadikan MESH (bisa dilengkungkan); yang tidak punya pivot
-    // tetap sprite diam — mesh tanpa poros tak ada artinya.
-    for (const key of ['2_back-hair', '3_lefthair_back', '4_righthair_back']) {
-      const tex = this.textures.get(key);
-      if (!tex) continue;
-      const p = hair?.[key]?.pivot;
-      if (p) {
-        const hm = makeHairMesh(tex, p);
-        hm.mesh.label = key;
-        this.backHair.addChild(hm.mesh);
-        this.hairPieces.push({ hair: hm, pivot: p });
-      } else {
-        const s = this.tryMake(key);
-        if (s) this.backHair.addChild(s);
-      }
-    }
-
-    const leftHand = this.tryMake('5_lefthand');
-    const rightHand = this.tryMake('6_righthand');
-
-    this.body = this.make('7_body');
-    // Napas: skala vertikal halus dari dasar badan -> pivot bawah-tengah.
-    this.body.pivot.set(CANVAS.width / 2, CANVAS.height);
-    this.body.position.set(CANVAS.width / 2, CANVAS.height);
-
-    // Aksesoris baju (pendulum), pivot di titik gantung — opsional.
-    this.cloth = this.tryMake('7b_body_acessories');
-    if (this.cloth) this.setPivot(this.cloth, manifest.groups.cloth_dynamic?.members['7b_body_acessories']?.pivot);
-
-    // --- grup kepala ---
-    const headbase = this.make('8_headbase');
-    this.mouth = this.make('9b_mouth_closed');
-
-    this.eyeBg = this.make('10_eyes_background');
-    this.pupilL = this.make('10_eyes_pupil_left');
-    this.pupilR = this.make('10_eyes_pupil_right');
-    this.eyeFrame = this.make('10_eyes_frame');
     this.eyeVariant = new Sprite(); // tekstur di-set saat ganti state
     this.eyeVariant.visible = false;
-    const blinkTex = this.textures.get(manifest.blink.overlay);
-    this.eyeBlink = blinkTex ? new Sprite(blinkTex) : new Sprite(); // tanpa tekstur = tak tampil
+    const blinkTex = this.textures.get(this.manifest.blink.overlay);
+    this.eyeBlink = blinkTex ? new Sprite(blinkTex) : new Sprite();
     this.eyeBlink.visible = false;
-    this.eyes.addChild(this.eyeBg, this.pupilL, this.pupilR, this.eyeFrame, this.eyeVariant, this.eyeBlink);
-
-    const sideHair = this.tryMake('11_side_small_hair');
-
-    this.bangs = this.tryMake('12_bangs');
-    if (this.bangs) this.setPivot(this.bangs, hair?.['12_bangs']?.pivot);
-
-    const browL = this.tryMake('13_left_eyebrow');
-    const browR = this.tryMake('14_right_eyebrow');
-
-    // Aksesoris kepala (z: 15a plume, lalu 15b statis) — opsional.
-    this.headAccessory = this.tryMake('15a_head_accessories');
-    if (this.headAccessory) {
-      this.setPivot(this.headAccessory, manifest.groups.head_accessory_dynamic?.members['15a_head_accessories']?.pivot);
-    }
-    const headAccStatic = this.tryMake('15b_head_accessories');
-
-    // Urutan z dipertahankan; yang null (tak ada di skin) di-skip.
-    const headChildren = [
-      headbase,
-      this.mouth,
-      this.eyes,
-      sideHair,
-      this.bangs,
-      browL,
-      browR,
-      this.headAccessory,
-      headAccStatic,
-    ].filter(Boolean) as Container[];
-    this.head.addChild(...headChildren);
-    const hpv = manifest.groups.head_group.pivot;
-    this.head.pivot.set(hpv[0], hpv[1]);
-    this.head.position.set(hpv[0], hpv[1]);
-
-    // Rambut belakang ikut turun bareng kepala (head di-drop via headTilt).
-    this.backHair.y = TUNING.dropY;
-
-    // --- rakit root sesuai z-order (bawah -> atas); yang null di-skip ---
-    const rootChildren = [
-      this.backWings,
-      this.backHair,
-      leftHand,
-      rightHand,
-      this.body,
-      this.cloth,
-      this.head,
-    ].filter(Boolean) as Container[];
-    this.root.addChild(...rootChildren);
-    this.root.pivot.set(CANVAS.width / 2, CANVAS.height / 2);
+    this.eyes.addChild(this.eyeVariant, this.eyeBlink);
   }
 }

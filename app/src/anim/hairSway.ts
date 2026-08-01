@@ -11,7 +11,11 @@ import type { AvatarRig } from '../rig/AvatarRig';
  * Selisih keduanya dipakai sebagai besar LENGKUNGAN mesh: rambut melengkung saat
  * bergerak dan lurus lagi saat diam, persis seperti rambut sungguhan.
  *
- * Poni tetap pakai peredam sederhana: dia pendek dan menempel di dahi, jadi
+ * Potongan DI DALAM grup kepala (mis. rambut samping) sudah ikut berputar bersama
+ * kepala, jadi rotasinya dipakai RELATIF (selisih terhadap kepala) supaya tidak
+ * terhitung dua kali. Yang di luar kepala (rambut belakang) dipakai absolut.
+ *
+ * Poni tetap pakai peredam sederhana: dia lebar dan menempel di dahi, jadi
  * goyangan pegas malah terlihat seperti kesalahan.
  */
 export class HairSway {
@@ -29,9 +33,10 @@ export class HairSway {
       const root = springStep(this.roots[i], headRot, h.stiffness, h.damping, dt);
       const tip = springStep(this.tips[i], root, h.tipStiffness, h.tipDamping, dt);
 
-      piece.hair.mesh.rotation = root * h.gain;
+      const swing = piece.inHead ? root - headRot : root;
+      piece.hair.mesh.rotation = swing * h.gain * piece.gain;
       // Ujung tertinggal di belakang pangkal -> melengkung ke arah berlawanan gerak.
-      bendHairMesh(piece.hair, (root - tip) * h.bendPixels);
+      bendHairMesh(piece.hair, (root - tip) * h.bendPixels * piece.bend * piece.gain);
     });
 
     if (rig.bangs) {

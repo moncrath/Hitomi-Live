@@ -1,6 +1,6 @@
 // Path aset. Dilayani lewat publicDir (../assets) => root URL.
 export const AVATAR = 'hitomi';
-export const DEFAULT_SKIN = 'Roccia';
+export const DEFAULT_SKIN = 'Hitomi';
 export const MANIFEST_URL = `/avatar/${AVATAR}/manifest.json`; // template/fallback bersama
 export const SKINS_URL = `/avatar/${AVATAR}/skins.json`;
 

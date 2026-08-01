@@ -11,9 +11,13 @@ export class HeadAccessorySway {
   private lag = 0;
 
   update(rig: AvatarRig, headRot: number, dt: number): void {
-    if (!rig.headAccessory) return; // skin tanpa plume kepala
+    if (!rig.headAccessories.length) return; // skin tanpa aksesoris kepala bergerak
     const h = TUNING.headAcc;
     this.lag = damp(this.lag, headRot, h.smoothing, dt);
-    rig.headAccessory.rotation = (this.lag - headRot) * h.gain;
+    // Semua aksesoris diayun SEARAH dan berlawanan dengan gerak kepala: kursor ke
+    // kiri -> telinga tertinggal ke kanan, seperti benda yang ikut terseret.
+    // (Sempat dibuat mirror kiri-kanan, tapi terlihat seperti telinga mengepak.)
+    const rel = (this.lag - headRot) * h.gain;
+    for (const node of rig.headAccessories) node.rotation = rel;
   }
 }
