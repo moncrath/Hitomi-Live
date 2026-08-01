@@ -251,6 +251,11 @@ export class AvatarRig {
     Object.values(manifest.eyes.variants).forEach((k) => keys.add(k));
     Object.values(manifest.mouths).forEach((k) => keys.add(k));
     if (manifest.blink?.overlay) keys.add(manifest.blink.overlay);
+    // Pupil khusus per-ekspresi (hati/spiral) — tak ada di z_order karena menumpang
+    // di node pupil yang sama, jadi harus didaftarkan manual.
+    for (const fx of Object.values(manifest.eyes.pupil_expressions ?? {})) {
+      if (fx?.texture) keys.add(fx.texture.left), keys.add(fx.texture.right);
+    }
 
     const missing: string[] = [];
     await Promise.all(
@@ -283,6 +288,12 @@ export class AvatarRig {
     this.pupilL = this.eyes.getChildByLabel(pupilL) as Sprite;
     this.pupilR = this.eyes.getChildByLabel(pupilR) as Sprite;
     this.eyeFrame = this.eyes.getChildByLabel(frame) as Sprite;
+
+    // Poros pupil ditaruh di pusat pupil supaya bisa DIPERBESAR/DIPUTAR di tempat
+    // (dipakai ekspresi pupil). Tanpa ini, skala akan menyeretnya ke pojok kanvas.
+    const p = this.manifest.eyes.pupils;
+    this.setPivot(this.pupilL, p.left.center);
+    this.setPivot(this.pupilR, p.right.center);
 
     this.eyeVariant = new Sprite(); // tekstur di-set saat ganti state
     this.eyeVariant.visible = false;

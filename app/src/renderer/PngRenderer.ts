@@ -13,6 +13,7 @@ import { WingFlap } from '../anim/wingFlap';
 import { ClothSway } from '../anim/clothSway';
 import { HeadAccessorySway } from '../anim/headAccessorySway';
 import { TalkAnim } from '../anim/talkAnim';
+import { PupilExpression } from '../anim/pupilExpression';
 import type { AvatarRenderer } from './AvatarRenderer';
 
 /**
@@ -33,6 +34,7 @@ export class PngRenderer implements AvatarRenderer {
   private readonly clothSway = new ClothSway();
   private readonly headAccessorySway = new HeadAccessorySway();
   private readonly talk = new TalkAnim();
+  private readonly pupilFx = new PupilExpression();
 
   constructor(private readonly ptr: PointerTracker) {}
 
@@ -96,6 +98,8 @@ export class PngRenderer implements AvatarRenderer {
     this.clothSway.update(rig, headRot, dt);
     this.headAccessorySway.update(rig, headRot, dt);
     this.eyeTracking.update(rig, ptr, this.state.trackingActive, dt);
+    // Setelah tracking: ekspresi pupil menumpang di atas posisi hasil tracking.
+    if (this.state.baseMode) this.pupilFx.update(rig, this.state.current, dt);
     // TalkAnim menguasai mata+mulut selama aktif, jadi blink dimatikan.
     if (!this.talk.isActive) this.blink.update(rig, this.state.baseMode, dt);
     this.talk.update(rig, dt);

@@ -69,6 +69,10 @@ for (const id of ids) {
     ...Object.values(m.eyes.variants ?? {}),
     ...Object.values(m.mouths ?? {}),
     ...(m.blink?.overlay ? [m.blink.overlay] : []),
+    // Pupil khusus per-ekspresi: menumpang di node pupil, jadi tak muncul di z_order.
+    ...Object.values(m.eyes.pupil_expressions ?? {}).flatMap((fx) =>
+      fx?.texture ? [fx.texture.left, fx.texture.right] : [],
+    ),
   ]);
 
   const have = new Set(files.map((f) => f.slice(0, -4)));

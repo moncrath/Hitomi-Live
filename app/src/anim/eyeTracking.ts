@@ -43,7 +43,10 @@ export class EyeTracking {
     this.oxR = damp(this.oxR, txR, TUNING.eyes.smoothing, dt);
     this.oyR = damp(this.oyR, tyR, TUNING.eyes.smoothing, dt);
 
-    rig.pupilL.position.set(this.oxL, this.oyL);
-    rig.pupilR.position.set(this.oxR, this.oyR);
+    // Poros pupil ada di pusatnya (lihat AvatarRig), jadi posisi = pusat + offset.
+    const cl = rig.manifest.eyes.pupils.left.center;
+    const cr = rig.manifest.eyes.pupils.right.center;
+    rig.pupilL.position.set(cl[0] + this.oxL, cl[1] + this.oyL);
+    rig.pupilR.position.set(cr[0] + this.oxR, cr[1] + this.oyR);
   }
 }

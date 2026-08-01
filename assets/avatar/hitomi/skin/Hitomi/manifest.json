@@ -31,7 +31,7 @@
       "note": "Rambut = mesh (sway + melengkung). Pivot = titik NEMPEL di kepala, yaitu tepi DALAM pita-atas tiap potong — bukan tengah bbox (kalau dari tengah, twin-tail terlihat lepas dari kepala). `gain` mengecilkan gerak per potong: rambut belakang Hitomi pendek jadi hampir tak bergerak; rambut samping ada di dalam grup kepala sehingga geraknya dihitung relatif.",
       "members": {
         "2_back-hair":              { "pivot": [550, 332], "gain": 0.10, "bend": 0.35 },
-        "3_lefthair_back":          { "pivot": [305, 290], "gain": 0.25, "bend": 0.6 },
+        "3_lefthair_back":          { "pivot": [342, 288], "gain": 0.25, "bend": 0.6 },
         "4_righthair_back":         { "pivot": [730, 288], "gain": 0.25, "bend": 0.6 },
         "11_side_small_hair-left":  { "pivot": [305, 500], "gain": 0.9,  "bend": 1.1 },
         "11_side_small_hair-right": { "pivot": [771, 500], "gain": 0.9,  "bend": 1.1 },
@@ -70,6 +70,24 @@
     "variants": {
       "closed":       "10a_eyes_closed",
       "closed_happy": "10b_eyes_closed_happy"
+    },
+
+    "pupil_expressions": {
+      "note-scale": "1 = normal, <1 mengecil (kaget/tajam), >1 membesar (fokus/love)",
+      "note-offset": "px di kanvas 1080x1440; offsetY + = melihat ke bawah",
+      "mikir":   { "scale": 0.95, "offsetY": -7 },
+      "ngoding": { "scale": 1.08 },
+      "error":   { "scale": 0.55, "shake": 5 },
+      "marah":   { "scale": 0.68, "offsetY": 5 },
+      "minder":  { "scale": 0.92, "offsetX": 12, "offsetY": -6 },
+      "dizzy":   {
+        "scale": 1.05, "spin": 3.2,
+        "texture": { "left": "10_eyes_dizzy_pupil_left", "right": "10_eyes_dizzy_pupil_right" }
+      },
+      "love":    {
+        "scale": 1.28, "pulse": 0.12,
+        "texture": { "left": "10_eyes_love_pupil_left", "right": "10_eyes_love_pupil_right" }
+      }
     }
   },
 

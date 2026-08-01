@@ -33,6 +33,18 @@ export interface DynamicMember {
   deform?: boolean;
 }
 
+/** Efek pupil per-state (prosedural — tanpa aset tambahan). */
+export interface PupilFx {
+  scale?: number; // 1 = normal; <1 mengecil (kaget/marah), >1 membesar (love/fokus)
+  offsetX?: number; // px di kanvas; + = melirik ke kanan
+  offsetY?: number; // + = melihat ke bawah
+  shake?: number; // amplitudo getar acak (px) — kesan gemetar/kaget
+  spin?: number; // rad/detik (mis. pupil spiral saat pusing)
+  pulse?: number; // amplitudo denyut skala (mis. jantung berdebar saat love)
+  /** Tekstur pupil khusus (mis. hati/spiral). Tak disebut = pakai pupil normal. */
+  texture?: { left: string; right: string };
+}
+
 export interface Roles {
   body?: string; // dipakai napas
   headbase?: string; // wajib ada (inti kepala)
@@ -63,6 +75,8 @@ export interface Manifest {
       max_offset: Vec2;
     };
     variants: Record<string, string>;
+    /** Ekspresi pupil per nama state. Yang tak disebut = pupil normal. */
+    pupil_expressions?: Record<string, PupilFx>;
   };
   mouths: Record<string, string>;
   brows: { left: string; right: string; static: boolean };
