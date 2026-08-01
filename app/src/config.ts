@@ -4,8 +4,15 @@ export const DEFAULT_SKIN = 'Hitomi';
 export const MANIFEST_URL = `/avatar/${AVATAR}/manifest.json`; // template/fallback bersama
 export const SKINS_URL = `/avatar/${AVATAR}/skins.json`;
 
-/** Skin aktif = set tekstur karakter (folder di `skin/`). Disimpan di localStorage. */
-export const getSkin = (): string => localStorage.getItem('hitomi.skin') || DEFAULT_SKIN;
+/**
+ * Skin aktif. Hitomi satu-satunya karakter, jadi ini KONSTAN — bukan pilihan.
+ *
+ * Dulu tersimpan di localStorage lewat menu. Itu jadi jebakan: localStorage
+ * overlay Tauri terpisah dari browser, jadi begitu skin lama dihapus dari aset,
+ * exe yang pernah dipakai tetap meminta skin itu dan gagal dengan "layer inti
+ * hilang". Tanpa pilihan, tak ada pilihan basi yang bisa tertinggal.
+ */
+export const getSkin = (): string => DEFAULT_SKIN;
 
 /** Manifest KHUSUS skin (opsional). Bila ada → geometri/pivot/z-order milik skin itu
  *  sendiri (karakter beda bentuk). Bila tak ada → pakai `MANIFEST_URL` bersama. */

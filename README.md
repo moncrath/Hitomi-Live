@@ -14,7 +14,9 @@ and pops a speech bubble with her last line. Powered entirely by **Claude Code h
 ![Tauri](https://img.shields.io/badge/Tauri-v2-24C8DB?style=for-the-badge&logo=tauri)
 ![pixi.js](https://img.shields.io/badge/pixi.js-v8-e91e63?style=for-the-badge)
 ![Persona](https://img.shields.io/badge/Persona-Yandere_💗-ff5fa2?style=for-the-badge)
-![Version](https://img.shields.io/badge/Release-v1.0.0-22c55e?style=for-the-badge)
+![Version](https://img.shields.io/badge/Release-v1.1.0-22c55e?style=for-the-badge)
+
+<img src="docs/preview/base.png" alt="Hitomi — base" width="330" />
 
 </div>
 
@@ -43,8 +45,29 @@ with any Claude Code session. Run one exe; it reacts in every project.
 | 💬 | **Speech bubble** | Hitomi's last sentence, read from the transcript `.jsonl`. No streaming, no TTS. |
 | 🗣️ | **Talk & think anim** | Mouth moves while she talks; a spinning "thinking" bubble while she works. |
 | 😵 | **Error moods** | One error → dizzy; a losing streak → genuinely annoyed. |
-| 🎨 | **Swappable skins** | Per-skin textures (+ optional per-skin rig). Tolerant loader — skins can differ. |
+| 🧬 | **Data-driven rig** | Layer names, pivots, sway strength, mesh bend & offsets all live in the manifest. |
+| 🌊 | **Real hair physics** | Second-order springs + mesh deformation — hair bends and settles, it doesn't just rotate. |
 | 📦 | **Truly portable** | One self-contained exe + one global hook = reacts in **every** project, zero per-project setup. |
+
+## 🎭 Expressions
+
+Every expression is driven by the **pupils**, not by swapping whole eye images — so Hitomi keeps
+**looking at your cursor even while she reacts**. Scale, offset, jitter, spin and pulse are procedural
+(defined per state in the manifest); only the heart and spiral pupils are drawn assets.
+
+![Hitomi expressions](docs/preview/expressions.png)
+
+| State | Trigger | Pupils |
+|---|---|---|
+| `idle` | nothing happening | normal, tracking your cursor |
+| `mikir` | you submit a prompt | slightly smaller, looking up |
+| `ngoding` | a tool is running | slightly wider (focused) + hands shift pose |
+| `sukses` | task finished | happy closed eyes |
+| `error` | tool failed | shrunk + trembling |
+| `marah` | 3+ failures in a row | narrowed, looking down |
+| `minder` | — | glancing away |
+| `dizzy` | a single tool error | **spiral pupils**, spinning |
+| `love` | session start | **heart pupils**, enlarged + pulsing |
 
 ## 🔌 How it works
 
@@ -88,25 +111,25 @@ npx tauri build --no-bundle   # → src-tauri/target/release/app.exe (portable)
 
 Change the icon: drop a square PNG and run `npx tauri icon <file.png>`.
 
-## 🎨 Skin system
+## 🎨 Character & rig
 
-Character textures are split per-skin; the rig/manifest is shared (or overridden per-skin).
+Hitomi is the **only** character — there is no skin picker. Her textures and rig live together:
 
 ```
 assets/avatar/hitomi/
-├─ manifest.json        # shared rig (z-order, pivots, states) — fallback
-├─ skins.json           # skin registry
-└─ skin/
-   ├─ Roccia/*.png      # default skin (Wuthering Waves)
-   └─ <id>/
-      ├─ *.png
-      └─ manifest.json  # optional: geometry/pivots for this skin only
+├─ manifest.json         # documented TEMPLATE for a new character
+└─ skin/Hitomi/
+   ├─ *.png              # layers, one shared canvas (1080x1440)
+   └─ manifest.json      # the rig actually used: z-order, pivots, states
 ```
 
-**Add a skin:** create `skin/<id>/` with the layer PNGs (same names), add an entry to `skins.json`,
-then run `node scripts/check-skins.mjs` to verify completeness (**core** layers required, optional ones
-may be missing → skipped). Switch skins from the overlay menu. Assets are embedded at build time, so
-**rebuild the exe** after adding a skin.
+The rig is **data-driven**: layer names are free (map them via `roles`), a layer's number decides its
+group (**>= 8 follows the head**), and every moving layer accepts `pivot`, `gain`, `bend`, `deform`
+and `offset`. So retuning how hair swings, how far a chain bends, or nudging a ponytail into place is a
+number in the manifest — not a code change.
+
+Verify completeness with `node scripts/check-skins.mjs` (**core** layers required; optional ones may be
+missing and are skipped). Assets are embedded at build time, so **rebuild the exe** after changing art.
 
 ## 📂 Repo contents
 

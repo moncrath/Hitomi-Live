@@ -302,7 +302,11 @@ export class AvatarRig {
     const core = [this.roles.body, this.roles.headbase, this.roles.mouth, ...this.manifest.eyes.base];
     const gone = core.filter((k) => !this.textures.has(k));
     if (gone.length) {
-      throw new Error(`Skin "${getSkin()}" tak lengkap — layer inti hilang: ${gone.join(', ')}`);
+      throw new Error(
+        `Skin "${getSkin()}" tak lengkap — layer inti hilang: ${gone.join(', ')}.\n` +
+          `Pastikan folder skin/${getSkin()}/ berisi file-file itu, atau pilih skin lain ` +
+          `lewat menu. Cek cepat: node scripts/check-skins.mjs`,
+      );
     }
   }
 

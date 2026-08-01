@@ -39,9 +39,9 @@ Claude Code (di Antigravity)
 ```
 
 ## Aset seni ✅ (diterima)
-Layer PNG per-skin di `assets/avatar/hitomi/skin/<id>/` (skin aktif: **Roccia** — Wuthering Waves), kanvas
+Layer PNG di `assets/avatar/hitomi/skin/Hitomi/` (**satu-satunya karakter**, karya orisinal user), kanvas
 seragam **1080×1440**, penamaan bernomor (z besar = atas). Karakter: chibi gothic-lolita, twin-tail ungu-pink.
-Manifest/rig dipakai bersama semua skin; daftar skin di `skins.json`.
+Rig dipakai dari `skin/Hitomi/manifest.json`; manifest luar = TEMPLATE berdokumentasi untuk karakter baru.
 - Base: `1_back-accessories` → `8_headbase` · badan · 2 tangan (di belakang badan) · 3 grup rambut.
 - **Mata:** base tracking (`10_eyes_background`+`pupil_left/right`+`frame`) + 7 variant utuh
   (`10a` closed, `10b` closed_happy, `10c` dizzy, `10d` shocked, `10e` angry, `10f` love/yandere, `10g` sad).
@@ -62,8 +62,9 @@ Manifest/rig dipakai bersama semua skin; daftar skin di `skins.json`.
 - Animasi "ngomong" (mata `closed_happy` + mulut `9aa`/`9ab`), idle emote, mood error (dizzy/marah), bubble "thinking" berputar saat mikir/ngoding.
 - Styling: ekor bubble menunjuk ke kepala (ikut sisi kiri/kanan) + animasi muncul pop overshoot; bisa diuji di browser dev lewat tombol DevPanel.
 
-### ✅ Done — Ganti Skin
-- Menu → **Skin**: pilih set tekstur karakter (`skin/<id>/`, data-driven `skins.json`). Skin aktif: **Roccia**. Menyiapkan skin orisinal Hitomi tanpa ubah kode.
+### ✅ Done — Rig data-driven (menggantikan sistem ganti-skin)
+- Nama layer bebas per-karakter (`roles`), grup ditentukan nomor layer (≥ 8 = kepala), opsi per-layer `pivot`/`gain`/`bend`/`deform`/`offset`.
+- **Pemilih skin DIHAPUS (2026-08-02):** Hitomi jadi satu-satunya karakter. Pilihan skin dulu tersimpan di localStorage — dan localStorage overlay Tauri terpisah dari browser, jadi exe yang pernah dipakai tetap meminta skin lama yang sudah dihapus lalu gagal muat. Tanpa pilihan, tak ada nilai basi yang bisa tertinggal.
 
 ### Dibuang (sadar) — dievaluasi ulang & tetap dibuang, 2026-08-01
 - **TTS / lip-sync** — sempat dibangun & jalan secara teknis (edge-tts + amplitudo→mulut), dicabut: suara tak terdengar di mesin user + ongkos rangkaian tak sepadan.
