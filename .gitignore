@@ -30,6 +30,7 @@ Thumbs.db
 
 # Claude Code local settings (path mesin, jangan di-commit)
 .claude/settings.local.json
+CLAUDE.local.md
 
 # Config MCP lokal (server per-mesin, mis. Playwright)
 .mcp.json
