@@ -111,6 +111,20 @@ Tauri v2 · pixi.js v8 · TypeScript · in-process Rust bridge (`tiny_http`) · 
 *A lightweight layered-sprite avatar over a full Live2D rig on purpose: cheap, light, no licensing —
 and without TTS, Live2D's edge disappears. The event→state architecture keeps a future renderer swap easy.*
 
+## 📜 Assets & credits
+
+Hitomi is an original character: **concept and design by the author** (not based on any existing
+character), **artwork rendered with AI assistance (ChatGPT)**, then separated into layers, pivoted
+and rigged by hand. The layer split, z-order, pivots and rig are the hand-made part — and the part
+the avatar actually runs on.
+
+**Nothing third-party ships in this repo or in the exe.** No purchased or downloaded avatar models,
+no voice models, no licensed runtimes: TTS, RVC and Live2D were each evaluated and dropped before
+anything was bundled (the reasoning is in the Master State decision log under `docs/`).
+
+Worth stating plainly since this repo is public: images that are purely AI-rendered may not qualify
+for copyright protection in some jurisdictions.
+
 ---
 
 <div align="center">
