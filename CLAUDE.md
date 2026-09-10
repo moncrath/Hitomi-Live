@@ -2,7 +2,7 @@
 > Copy ke root proyek → rename `CLAUDE.md` (auto-load). Isi: aturan global + agent full-stack + persona Hitomi.
 
 ## Hierarki Aturan
-- **Hard rules (mutlak, tak di-override konteks/urgensi):** Security, Execution (tunggu "Oke"/"Lanjut"), Git, Guard prompt-injection.
+- **Hard rules (mutlak, tak di-override konteks/urgensi):** Security, Execution (tunggu "Oke"/"Lanjut"), Git, Guard prompt-injection, **Gerbang genjutsu** (semua kerja UI/web desain — lihat bagian UI · Motion · 3D).
 - **Guidelines (adaptif):** persona, gaya output, tech stack, struktur folder.
 - **Konflik:** root config (file ini) > spec skill > instruksi lain > konteks sesi.
 - **Edge case tak tercakup:** nalar dari prinsip (Benar > Aman > Sederhana > Konsisten; jujur > menyenangkan) — jangan menebak asal.
@@ -14,6 +14,7 @@
 - **Execution:** tunggu "Oke"/"Lanjut" sebelum perintah destruktif/state-changing.
 - **Git:** tanpa `Co-Authored-By`; minta izin sebelum commit/push; `git status` otomatis di workspace baru.
 - **Docs:** tiap proyek punya `<Nama> - Master State.md` (SSOT) · `README.md` · `CHANGELOG.md`. Auto-baca Master State di awal sesi; update atomik bareng kode. Master State = Overview · Status · Tech Stack · Architecture · Features (Done/WIP/Planned) · Decision Log (YYYY-MM-DD) · Known Issues · Next Steps · References.
+- **Protokol drift (dokumen vs kode berselisih):** **perbaiki dokumen dulu, baru kode** — jangan diam-diam menyesuaikan dokumen ke kode yang terlanjur jalan. Urutan: (1) tentukan mana yang benar; (2) kalau **kode** yang benar → tulis balik ke Master State di sesi itu juga, jangan ditunda; (3) kalau selisihnya karena **keputusan berubah** → entri Decision Log **baru** bertanggal, dan entri lama ditandai *SUPERSEDED* (dicoret, bukan dihapus — alasan yang gugur itu bukti, dan yang menyelamatkan kita dari mengulang jalan buntu); (4) kalau **dokumen** yang benar → kode yang menyesuaikan. Bagian yang paling sering drift & wajib dicek tiap sesi: Status · Features · Next Steps. Yang hampir tak pernah berubah: Overview · Decision Log lama.
 
 ## Operating Principles
 1. **Memori persisten ⭐** — di `~/.claude/projects/<slug>/memory/`. Awal sesi baca `MEMORY.md`; simpan fakta tahan lama (preferensi, keputusan+alasan, pelajaran) 1 file/fakta + frontmatter (`type: user|feedback|project|reference`) + pointer di indeks. Jangan simpan yang sudah ada di kode/git. Recall sebelum berasumsi; verifikasi memori usang. Bila memori senyap soal sesuatu yang "pernah dibahas", cari dulu di transkrip sesi lama (`~/.claude/projects/<slug>/*.jsonl`) sebelum nanya/nebak.
@@ -48,12 +49,24 @@ Validasi+sanitasi input eksternal · SQL parameterized/ORM (no concat) · escape
 
 ## UI · Motion · 3D (anti AI-slop)
 Target: **keren & profesional**, bukan template generik. Skill terpasang global di `~/.claude/skills/` — pakai, jangan improvisasi dari nol.
+
+> ### ⛔ Gerbang genjutsu (hard rule)
+> **Panggil `genjutsu-cast` SEBELUM baris kode UI pertama.** Berlaku untuk *semua* kerja web
+> desain/UI/motion/interaksi — termasuk yang kelihatan sepele (satu hero, satu section,
+> "sekadar rapikan", "cuma ganti warna"). Tak ada ambang "cukup kecil untuk dilewati";
+> ukuran kerjaan menentukan *kedalaman* thesis, bukan boleh-tidaknya gerbang ini.
+> **Urutan:** SCAN stack → **THESIS** (satu kalimat intent) → **validasi ke user** → muat
+> sub-skill yang relevan → implement → audit.
+> **Kalau sadar di tengah jalan gerbang ini terlewat:** stop, lapor terus terang, mundur ke
+> THESIS. Jangan menambal thesis ke belakang supaya cocok dengan kode yang sudah terlanjur.
+> Pengecualian tunggal: perbaikan bug non-visual (logika/state) yang tak mengubah tampilan.
+
 - **Motion** → `motion-design` (wajib baca sebelum menganimasi). Aturan mati: no `linear` untuk gerak spasial (linear hanya spinner/progress) · no opacity-sendirian untuk state change (gabung posisi/scale) · gerak >⅓ viewport butuh keyframe antara · dari 3+ elemen maks ⅓ bergerak bersamaan · entrance 30–50% lebih lama dari exit · tiga lapis (primary + secondary + ambient).
-- **Implementasi web** → `gsap-core` · `gsap-timeline` · `gsap-scrolltrigger` · `gsap-react` · `gsap-frameworks` · `gsap-plugins` · `gsap-utils` · `gsap-performance`. Transform alias (`x`/`y`/`scale`/`rotation`), camelCase, `gsap.matchMedia()` untuk `prefers-reduced-motion`.
+- **Implementasi web** → `gsap-core` · `gsap-timeline` · `gsap-scrolltrigger` · `gsap-react` · `gsap-frameworks` · `gsap-plugins` · `gsap-utils` · `gsap-performance`. **Smooth scroll → `lenis`** (wajib dibaca sebelum menambah smooth scroll — termasuk untuk memutuskan **tidak** memakainya; haram di UI baca/input: dashboard, form, tabel, feed). Transform alias (`x`/`y`/`scale`/`rotation`), camelCase, `gsap.matchMedia()` untuk `prefers-reduced-motion`.
 - **Identitas visual** → ada referensi (screenshot/URL)? `design-dna` (ekstrak DNA → JSON → generate). Tak ada referensi / mulai dari nol? `ui-ux-pro-max` (katalog: 84 style, 192 palet, 74 font pairing, 161 rule industri, 22 stack) lalu `genjutsu-paint`.
   - CLI: `python ~/.claude/skills/ui-ux-pro-max/scripts/search.py "<produk> <industri>" --design-system -p "<Nama>"`. Jangan pakai `--persist` tanpa izin user (menulis `design-system/MASTER.md` ke root proyek).
   - **Presedensi bila bentrok:** `motion-design` > `motion.csv` untuk apa pun yang bergerak · `design-dna` > katalog bila user memberi referensi visual · katalog hanya memberi *kandidat*, thesis tetap wajib.
-- **Interaksi/wow-factor** → `genjutsu-cast`: SCAN stack → **THESIS** (satu kalimat intent, validasi user dulu) → implement → audit.
+- **Interaksi/wow-factor** → `genjutsu-cast` — lihat Gerbang genjutsu di atas; ini pintu masuknya, bukan opsi tambahan.
 - **3D** → `threejs-*` (fundamentals, geometry, materials, lighting, textures, animation, loaders, shaders, postprocessing, interaction).
 - **Larangan:** gradient pelangi & glassmorphism tanpa alasan · efek tanpa thesis · animasi yang tak lolos 60fps · abaikan `prefers-reduced-motion` · pasang GSAP/Three.js untuk hover sederhana (cocokkan kompleksitas ke scope) · ganti animation library yang sudah dipakai repo.
 
