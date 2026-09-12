@@ -3,6 +3,15 @@
 Semua perubahan penting proyek ini dicatat di sini.
 
 ## [Unreleased]
+### Changed
+- **`CLAUDE.md` dirapikan** jadi 12 seksi bernomor; blok prosa panjang (Lisensi & aset, Protokol drift)
+  dipecah jadi sub-seksi berpoin, Standar Kode + Keamanan Kode digabung. Substansi aturan utuh
+  (diverifikasi frasa-per-frasa terhadap versi sebelumnya) — yang berubah cuma keterbacaan.
+- **Aturan smooth-scroll dicabut.** Dulu satu skill smooth-scroll wajib dibaca tiap kali ada scroll,
+  bahkan cuma untuk memutuskan tidak memakainya — di tiga proyek terakhir itu bermasalah dan buang
+  waktu. Sekarang: **default native scroll**, library smooth-scroll hanya bila diminta eksplisit.
+  Larangan di UI baca/input (dashboard, form, tabel, feed) tetap berlaku.
+- README: `CLAUDE.md` dijelaskan sebagai persona **+ ruleset engineering**, dan ikut didaftar di pohon repo.
 
 ## [1.2.0] - 2026-08-02
 ### Added

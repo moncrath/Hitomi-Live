@@ -91,7 +91,9 @@ The hook only **relays the event name** (strict validation, never executes anyth
 
 No per-project setup: one exe, and she reacts in *every* Claude Code session.
 
-> 💡 The Hitomi *persona* is separate: drop `CLAUDE.md` into a project for that. The avatar reacts either way.
+> 💡 The Hitomi *persona* is separate: drop [`CLAUDE.md`](CLAUDE.md) into a project for that — it carries
+> both her voice and the engineering rules she works by (security, git etiquette, docs discipline, UI gates).
+> The avatar reacts either way.
 
 ## 📂 Repo contents
 
@@ -101,7 +103,8 @@ Hitomi-Live/
 ├─ assets/    # art (avatar skins, UI, app-icon)
 ├─ hooks/     # notify.mjs — posts Claude Code events to the bridge
 ├─ scripts/   # check-skins.mjs — skin completeness check
-└─ docs/      # Master State (single source of truth)
+├─ docs/      # Master State (single source of truth)
+└─ CLAUDE.md  # the persona + engineering ruleset (copy it into any project)
 ```
 
 ## 🧩 Tech stack
