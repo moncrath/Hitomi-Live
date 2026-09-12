@@ -13,6 +13,12 @@ Semua perubahan penting proyek ini dicatat di sini.
   Larangan di UI baca/input (dashboard, form, tabel, feed) tetap berlaku.
 - README: `CLAUDE.md` dijelaskan sebagai persona **+ ruleset engineering**, dan ikut didaftar di pohon repo.
 
+### Removed
+- **Api WebM ornamen kepala dibatalkan permanen** (dulu berstatus "ditunda"). Asetnya ternyata tak pernah
+  ada di repo maupun riwayat git, dan user mengonfirmasi sudah tak dipakai. Kode memang sudah bersih
+  (`AvatarRig.attachFire` tak ada lagi). Ornamen kepala final: `15a` (gerak) + `15b` (statis), tanpa api.
+  Alasan teknis & jalur alternatif (sprite sheet, bukan video) dicatat di Decision Log Master State.
+
 ## [1.2.0] - 2026-08-02
 ### Added
 - **Pemasang hook otomatis** (`src-tauri/src/hook_setup.rs`). Dulu ini satu-satunya langkah manual
@@ -126,7 +132,8 @@ Semua perubahan penting proyek ini dicatat di sini.
 - Font UI: Komika (`KOMIKAX_.ttf`) → **Vividly** (`Vividly-Regular.ttf`, 100% free). Aset UI dipindah ke `assets/ui/`.
 
 ### Deferred
-- **Api WebM (ornamen kepala) ditunda.** Sempat diimplementasi (luma-key VP9 alpha + additive + autoplay hardening) tapi video nggak konsisten nongol di browser user → dicabut biar nggak menghambat. Aset `15c_head_accessories.webm` disimpan. Pelajaran teknis dicatat di memori (webm-additive-overlay-lesson).
+- **Api WebM (ornamen kepala) ditunda.** Sempat diimplementasi (luma-key VP9 alpha + additive + autoplay hardening) tapi video nggak konsisten nongol di browser user → dicabut biar nggak menghambat.
+  > **Koreksi 2026-09-12:** klaim "aset `15c_head_accessories.webm` disimpan" di baris ini **salah** — file itu tak pernah ada di repo maupun riwayat git. Fitur kini **dibatalkan permanen** (aset tak dipakai lagi, dikonfirmasi user). Duduk perkaranya di Decision Log Master State.
 
 ### Notes
 - 2026-07-28 — Proyek dibuat sebagai repo terpisah dari `Hitomi_Claude`. Pilihan avatar: PNGtuber 2.5D. Nunggu aset seni berlayer dari user.
