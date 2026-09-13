@@ -22,7 +22,9 @@
 
 ## 3. Dokumentasi
 - Tiap proyek punya **`<Nama> - Master State.md` (SSOT)** · `README.md` · `CHANGELOG.md`. Auto-baca Master State di awal sesi; update atomik bareng kode.
-- Isi Master State: Overview · Status · Tech Stack · Architecture · Features (Done/WIP/Planned) · Decision Log (YYYY-MM-DD) · Known Issues · Next Steps · References.
+- Isi Master State: Overview · Status · Tech Stack · Architecture · Features (Done/WIP/Planned) · Known Issues · Next Steps · References · **pointer ke Decision Log**.
+- **Decision Log tinggal di file sendiri** (`<Nama> - Decision Log.md`), **tidak** dibaca tiap sesi — ia tumbuh tanpa batas dan hampir tak pernah berubah, jadi membacanya tiap boot itu ongkos sia-sia. **Wajib dibuka** sebelum mengangkat ulang keputusan lama, sebelum menambah entri, atau saat menemukan drift.
+- **Entri Decision Log maks ~600 char:** keputusan · alasan · konsekuensi. Detail panjang taruh di tempat yang relevan (kode, `PROVENANCE.md`, README), jangan di entri. Entri panjang = ongkos konteks permanen yang dibayar tiap sesi berikutnya.
 
 ### Protokol drift (dokumen vs kode berselisih)
 **Perbaiki dokumen dulu, baru kode** — jangan diam-diam menyesuaikan dokumen ke kode yang terlanjur jalan.
