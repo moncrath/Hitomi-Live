@@ -28,5 +28,6 @@ Console: `window.hitomi` = `{ app, rig, state }`.
 - `npm run build` — typecheck (`tsc --noEmit`) + build produksi.
 - `npm run typecheck` — cek tipe saja.
 
-Selanjutnya (Fase 1b): bungkus Tauri (transparan, always-on-top, click-through)
-+ bridge WebSocket + verifikasi hooks Claude Code di Antigravity.
+Status: Fase 1b & 1c **selesai** — shell Tauri (transparan, always-on-top, click-through),
+bridge in-process (Rust `tiny_http`), dan hooks Claude Code global sudah jalan.
+Overlay IDE-agnostic: sinyal dari `~/.claude/settings.json`, bukan API IDE.

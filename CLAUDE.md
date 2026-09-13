@@ -67,18 +67,40 @@ Target: **keren & profesional**, bukan template generik. Skill terpasang global 
 
 > ### ⛔ Gerbang genjutsu (hard rule)
 > **Panggil `genjutsu-cast` SEBELUM baris kode UI pertama.** Berlaku untuk *semua* kerja desain/UI/motion/interaksi — termasuk yang kelihatan sepele (satu hero, satu section, "sekadar rapikan", "cuma ganti warna"). Tak ada ambang "cukup kecil untuk dilewati"; ukuran kerjaan menentukan **kedalaman** thesis, bukan boleh-tidaknya gerbang ini.
-> **Urutan:** SCAN stack → **THESIS** (1 kalimat intent) → **validasi ke user** → muat sub-skill relevan → implement → audit.
+> **Urutan:** SCAN stack → **THESIS** (1 kalimat intent + dial `ENERGY`/`RHYTHM`/`MOTION`) → **validasi ke user** → muat `antislop` + sub-skill relevan → implement → **Delivery Gate antislop** (audit).
 > **Kalau sadar di tengah jalan gerbang ini terlewat:** stop, lapor terus terang, mundur ke THESIS. Jangan menambal thesis ke belakang supaya cocok dengan kode yang sudah terlanjur.
 > **Pengecualian tunggal:** perbaikan bug non-visual (logika/state) yang tak mengubah tampilan.
+
+### Filter anti-slop → `antislop` (pihak ketiga, MIT)
+`antislop` v3.2.7 (MIT, © Miqdad Badjuber) terpasang global; asal-usul + hasil audit keamanan di `~/.claude/skills/antislop/PROVENANCE.md`. Ia **filter, bukan style guide** — menolak *teknik tanpa tujuan*, dan tak pernah menentukan warna/font/layout. Konsekuensinya penting: **membuang slop tidak menghasilkan desain bagus, cuma menyisakan kekosongan** — arah & nyawa tetap tugas thesis kita.
+- **Core `antislop` wajib dimuat** tiap kerja UI/copy, bareng sub-skill sesuai tugas: `antislop-ui` (visual/layout/komponen/dekorasi) · `antislop-copywriting` (copy & teks) · `antislop-human` (kontras/keyboard/fokus/state — ada `contrast-check.py`) · `antislop-layoutmobile` (reflow antar-breakpoint) · `antislop-code` (higiene komentar kode).
+- **38 aturan `R-01`…`R-38`, tiga tingkat:** *Hard Gate* (mutlak, tak ada pengecualian) · *Purpose-Gate* (teknik **boleh**, tapi **alasannya wajib ditulis**) · *Quality Locks* (konsistensi). **`R-31` keystone:** tiap keputusan besar butuh alasan 1 baris — tak bisa ditulis = keputusan gugur, revisi.
+- **Liveliness Toolkit:** dial `ENERGY`/`RHYTHM`/`MOTION` (1 tenang → 3 berani) + satu focal point per layar, whitespace struktural, satu aksen sengaja, satu motif identitas. Dial **dideklarasikan di THESIS** dan dipegang dari section pertama sampai terakhir — klaim `RHYTHM 3` tapi section seragam = FAIL.
+- **Delivery Gate = syarat rilis UI.** Laporan PASS/FAIL 4 blok sebelum klaim selesai, tiap PASS wajib **bukti konkret** (bukan centang kosong). Ada satu FAIL → **jangan kirim**: perbaiki, jalankan ulang. Ini nyambung ke §11 "Selesai =".
+- **Mode:** default **DURING** (aturan dipakai sambil membangun). **Jangan tanya "during atau after"** — gerbang genjutsu sudah jadi titik tanya kita, dua gerbang cuma bikin user ditanyai dua kali. Mode **AFTER** (temuan bernomor → user pilih nomor → baru diperbaiki, nomor yang tak disebut tak disentuh) dipakai hanya bila user memang minta audit.
+
+#### Penyesuaian wajib — di mana antislop tunduk ke aturan kita
+Root config > spec skill (§1). Titik bentrok & putusannya:
+- **First-Run Install Wizard di core: DILEWATI.** Ia menyuruh menempel blok `<!-- antislop:start -->` ke `CLAUDE.md`; integrasi kita dikerjakan sadar di bagian ini. **Jangan pernah menempel blok titipan skill pihak ketiga ke root config** — core-nya sendiri bilang lewati wizard kalau pointer antislop sudah ada.
+- **Kita tak punya `DESIGN.md`, dan itu BUKAN "tanpa arah".** Sumber arah kita: `design-dna` (bila user beri referensi visual) · `ui-ux-pro-max` + `genjutsu-paint` (mulai dari nol) · Master State proyek. `R-37` baru menyala kalau **ketiganya** kosong — dan waktu itu output **wajib** dilabeli *"draft tanpa arah"* + dial 1/1/1, bukan diam-diam jadi default steril. Kalau arah minta pola yang kena Hard Gate: **sebut elemennya, sebut aturannya, tanya user** — jangan diikuti buta, jangan ditimpa sepihak.
+- **`R-02` (larang em dash) HANYA untuk copy UI/produk.** Tidak berlaku di chat, commit message, README, CHANGELOG, Master State, atau file config ini — dokumen internal kita berbahasa Indonesia dan memang memakai em dash.
+- **Aturan web-marketing dipakai sesuai konteks.** `R-15`/`R-17`/`R-18`/`R-24`/`R-28`/`R-36`/`R-38` (CTA, statistik, testimonial, navbar, FAQ, klaim) mengikat untuk web/landing. Di proyek non-web (mis. overlay desktop) ambil yang relevan — **jangan mengarang section** cuma supaya ada yang bisa dicentang.
+- **Presedensi bila bentrok:** `motion-design` menang soal **bagaimana** gerak dibuat (easing, layering, durasi); antislop `R-19` + dial MOTION memutuskan **apakah** gerak itu pantas ada · `design-dna` > katalog bila user memberi referensi visual · `antislop` > katalog `ui-ux-pro-max` bila katalog menyarankan pola yang kena Hard Gate · katalog hanya memberi *kandidat*, thesis tetap wajib.
+
+#### Tambahan lokal — warisan anti-slop lama kita (tak ada di antislop, jangan hilang)
+- **Larang "data exhaust":** metadata ornamental palsu — koordinat (`47.6062°N`), timestamp, `VOL. 04`, `READING: 41 MIN`, `248 PAGES`, `PLATE 01`, path file. Tampilkan hanya bila **nyata & fungsional**. Jangan mengisi ruang kosong dengan label; biarkan bernapas.
+- **Larang label redundan & jaga budget label:** jangan menamai yang sudah kelihatan (tag `LOGO` di logo, `HERO` di hero), jangan mengulang identitas yang sama di beberapa tempat. Kalau sebuah teks dibuang dan tak ada informasi yang hilang → buang. Lebih baik sedikit-besar-bermakna daripada banyak-kecil.
+- **Larang eyebrow kicker** (pre-title kecil all-caps berwarna di atas heading) · **maksimal SATU subtitle** per blok heading · **larang split heading/description** (heading kiri, deskripsi kanan di baris yang sama — tumpuk vertikal) · **larang kartu bernomor** (`01`, `02`, `03`) kecuali isinya memang proses berurutan.
+- **Emoji ≠ ikon** — petakan ke set ikon SVG yang konsisten. **Ikon itu utilitas (maks ~32px)** — jangan membesarkan ikon garis jadi ilustrasi hero 128px; butuh grafis → bentuk abstrak, gambar, atau potongan UI asli.
+- **Kata terlarang tambahan** (di luar `R-16`): Unleash/Unlock · Supercharge · Elevate · Leverage · Dive In · Tapestry.
 
 - **Motion** → `motion-design` (wajib dibaca sebelum menganimasi). Aturan mati: no `linear` untuk gerak spasial (linear hanya spinner/progress) · no opacity-sendirian untuk state change (gabung posisi/scale) · gerak >⅓ viewport butuh keyframe antara · dari 3+ elemen maks ⅓ bergerak bersamaan · entrance 30–50% lebih lama dari exit · tiga lapis (primary + secondary + ambient).
 - **Implementasi web** → `gsap-core` · `gsap-timeline` · `gsap-scrolltrigger` · `gsap-react` · `gsap-frameworks` · `gsap-plugins` · `gsap-utils` · `gsap-performance`. Transform alias (`x`/`y`/`scale`/`rotation`), camelCase, `gsap.matchMedia()` untuk `prefers-reduced-motion`.
 - **Scroll:** default **native scroll**. Jangan pasang library smooth-scroll kecuali user minta eksplisit; haram di UI baca/input (dashboard, form, tabel, feed).
 - **Identitas visual:** ada referensi (screenshot/URL) → `design-dna` (ekstrak DNA → JSON → generate). Mulai dari nol → `ui-ux-pro-max` (katalog style · palet · font pairing · rule industri · stack) lalu `genjutsu-paint`.
   - CLI: `python ~/.claude/skills/ui-ux-pro-max/scripts/search.py "<produk> <industri>" --design-system -p "<Nama>"`. Jangan pakai `--persist` tanpa izin user (menulis `design-system/MASTER.md` ke root proyek).
-  - **Presedensi bila bentrok:** `motion-design` > `motion.csv` untuk apa pun yang bergerak · `design-dna` > katalog bila user memberi referensi visual · katalog hanya memberi *kandidat*, thesis tetap wajib.
 - **3D** → `threejs-*` (fundamentals, geometry, materials, lighting, textures, animation, loaders, shaders, postprocessing, interaction).
-- **Larangan:** gradient pelangi & glassmorphism tanpa alasan · efek tanpa thesis · animasi yang tak lolos 60fps · abaikan `prefers-reduced-motion` · pasang GSAP/Three.js untuk hover sederhana (cocokkan kompleksitas ke scope) · ganti animation library yang sudah dipakai repo.
+- **Larangan (di luar 38 aturan antislop):** efek tanpa thesis · animasi yang tak lolos 60fps · abaikan `prefers-reduced-motion` · pasang GSAP/Three.js untuk hover sederhana (cocokkan kompleksitas ke scope) · ganti animation library yang sudah dipakai repo. *(Gradient pelangi, glassmorphism, glow & shadow berlebihan sudah diatur `R-01`/`R-10`/`R-13`/`R-12` — jangan duplikasi aturannya di sini, satu sumber kebenaran saja.)*
 
 ## 10. Checklist
 - **Web:** responsif mobile-first · a11y (semantik/label/alt/kontras/focus/keyboard) · performa (lazy-load/optimasi gambar/code-split) · SEO bila publik · state loading/error/empty.
@@ -86,6 +108,7 @@ Target: **keren & profesional**, bukan template generik. Skill terpasang global 
 
 ## 11. Selesai = (sebelum klaim "selesai")
 build lolos · lint+typecheck bersih · test relevan lulus (atau usulkan) · no secret bocor di diff · docs terupdate. **Test gagal → tunjukkan output, jangan klaim selesai.**
+**Kerja UI tambah satu syarat:** **Delivery Gate `antislop`** lolos — laporan PASS/FAIL 4 blok dengan bukti konkret per PASS (§9). Ada satu FAIL → belum selesai.
 
 ## 12. Hindari
 dependency/abstraksi tanpa kebutuhan · menulis ulang kode yang sudah jalan (cek dulu) · scope creep · langgar konvensi repo · commit/push/deploy tanpa izin.
