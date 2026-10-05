@@ -11,9 +11,9 @@ Overlay avatar **PNGtuber (2.5D layered)** untuk "menghidupkan" persona Hitomi s
 Avatar tampil sebagai jendela terapung di layar dan bereaksi ke aktivitas agent (Claude Code)
 lewat *hooks*. Tujuan: ekspresif & menarik, bukan sekadar teks di terminal.
 
-Konteks pemakaian: user ngoding dengan **Claude Code sebagai ekstensi IDE** — sejak **2026-09-13 di
-VS Code** (sebelumnya Antigravity). Overlay sengaja **IDE-agnostic**: sinyalnya datang dari hooks
-**global** `~/.claude/settings.json`, bukan API IDE — jadi pindah IDE tak menyentuh kode.
+Konteks pemakaian: user ngoding lewat **aplikasi desktop Claude (tab Code)** sejak **2026-10-06**
+(sebelumnya ekstensi VS Code, sebelumnya lagi Antigravity). Overlay sengaja **host-agnostic**: sinyalnya
+datang dari hooks **global** `~/.claude/settings.json`, bukan API IDE — jadi pindah host tak menyentuh kode.
 
 ## Status
 🟢 **Fase 1a selesai & di-commit.** Renderer pixi.js v8 (Vite+TS) di `app/` (http://127.0.0.1:5173). Loader manifest → scene ber-grup + animasi: blink · eye-track · head-tilt 2.5D · hair-sway · napas · sayap flap · aksesoris baju pendulum · plume kepala trailing. Aset: sayap `1a/1b`, baju `7b`, kepala `15a`(gerak)/`15b`(statis). **Api WebM dibatalkan permanen** (2026-09-12 — aset tak dipakai lagi & sudah tak ada).
@@ -39,7 +39,7 @@ VS Code** (sebelumnya Antigravity). Overlay sengaja **IDE-agnostic**: sinyalnya 
 
 ## Architecture
 ```
-Claude Code (ekstensi IDE — kini VS Code)
+Claude Code (kini aplikasi desktop Claude, tab Code)
   └─ hooks (settings.json)  ── event ──►  Bridge lokal (WebSocket)  ──►  Overlay PNGtuber (pixi.js)
        - prompt masuk                                                     reaksi:
        - tool dipakai                                                     - ekspresi state
@@ -83,18 +83,13 @@ Rig dipakai dari `skin/Hitomi/manifest.json`; manifest luar = TEMPLATE berdokume
 - **Live2D rig** — kerangka renderer siap & lolos build, tapi penghalangnya rigging (kerja tangan di GUI Cubism), bukan kode. **Ditutup permanen 2026-09-13** (dulu "ditunda sampai user belajar rigging" — premis itu gugur, user tak akan memakainya).
 
 ## Decision Log → file terpisah
-34 entri (Juli 2026–sekarang) ada di **`docs/Hitomi-Live - Decision Log.md`** — sengaja **tidak**
+36 entri (Juli 2026–sekarang) ada di **`docs/Hitomi-Live - Decision Log.md`** — sengaja **tidak**
 dibaca tiap boot sesi. **Buka file itu sebelum mengangkat ulang keputusan lama, sebelum menambah
 entri, atau saat menemukan drift.** Riwayatnya utuh, nol entri dihapus.
 
-Empat terbaru:
-- **2026-09-13** — **TTS/RVC & Live2D DITUTUP PERMANEN; status "ditunda tanpa tanggal" dicabut.** User: tak akan memakai keduanya…
-- **2026-09-13** — **FITUR DIBEKUKAN: `tauri build` jadi installer & "ekspresi tambahan" DIBATALKAN; portable exe dinyatakan cuku…
-- **2026-09-13** — **`anti-slop-skill.md` buatan sendiri DIGANTI `antislop` v3.2.7 (pihak ketiga, MIT). Temuan mengejutkan: yang…
-- **2026-09-13** — **IDE pindah Antigravity → VS Code; item "uji end-to-end di sesi coding Antigravity asli" DIHAPUS dari Next St…
-
 ## Known Issues / Risks
 - ✅ **RESOLVED (2026-07-29):** hooks Claude Code **kepanggil beneran** saat dihost di Antigravity — notif end-to-end terverifikasi jalan. Risiko #1 hilang.
+- ⚠️ **Belum diverifikasi (2026-10-06):** apakah hooks memicu overlay saat Claude Code dijalankan dari aplikasi desktop Claude (tab Code). Cek begitu overlay dipakai lagi.
 - Head-tracking = efek 2.5D condong/parallax, bukan putar kepala 3D asli (batas PNG flat).
 
 ## Next Steps (FITUR DIBEKUKAN — 2026-09-13)
