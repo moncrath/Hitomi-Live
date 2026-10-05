@@ -89,7 +89,7 @@ entri, atau saat menemukan drift.** Riwayatnya utuh, nol entri dihapus.
 
 ## Known Issues / Risks
 - ✅ **RESOLVED (2026-07-29):** hooks Claude Code **kepanggil beneran** saat dihost di Antigravity — notif end-to-end terverifikasi jalan. Risiko #1 hilang.
-- ⚠️ **Belum diverifikasi (2026-10-06):** apakah hooks memicu overlay saat Claude Code dijalankan dari aplikasi desktop Claude (tab Code). Cek begitu overlay dipakai lagi.
+- ✅ **RESOLVED (2026-10-06):** hooks memicu overlay saat Claude Code dijalankan dari aplikasi desktop Claude (tab Code). Dikonfirmasi user: overlay tetap aktif.
 - Head-tracking = efek 2.5D condong/parallax, bukan putar kepala 3D asli (batas PNG flat).
 
 ## Next Steps (FITUR DIBEKUKAN — 2026-09-13)
